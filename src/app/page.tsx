@@ -199,9 +199,26 @@ export default function Home() {
     return <WelcomeScreen onStart={() => {}} />;
   }
 
-  // إذا لم يُسجّل الطالب بعد
+  // إذا لم يُسجّل الطالب بعد - تحقق من وجود ملفات سابقة لعرض "متابعة"
+  const existingProfiles = Object.values(state.profiles);
+  const lastProfile = existingProfiles[0];
+  const hasExistingProfile =
+    existingProfiles.length > 0 && !!lastProfile?.studentName;
+
   if (!activeProfile) {
-    return <WelcomeScreen onStart={handleStart} />;
+    return (
+      <WelcomeScreen
+        onStart={handleStart}
+        hasProgress={hasExistingProfile}
+        studentName={lastProfile?.name}
+        onContinue={() => {
+          if (lastProfile) {
+            switchProfile(lastProfile.id);
+            setView({ type: "dashboard" });
+          }
+        }}
+      />
+    );
   }
 
   // overlay الشهادة

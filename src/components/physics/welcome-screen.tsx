@@ -1,19 +1,123 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { motion, useInView } from "framer-motion";
+import { useState, useRef, useEffect } from "react";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Atom, Sparkles, Rocket, BookOpen, ChevronLeft } from "lucide-react";
+import {
+  Atom,
+  Sparkles,
+  Rocket,
+  BookOpen,
+  ChevronLeft,
+  PlayCircle,
+  Calculator,
+  FlaskConical,
+  Trophy,
+  Brain,
+  Search,
+  Dumbbell,
+} from "lucide-react";
 
 type Props = {
   onStart: (name: string) => void;
+  hasProgress?: boolean;
+  studentName?: string;
+  onContinue?: () => void;
 };
 
-export function WelcomeScreen({ onStart }: Props) {
+// مكوّن شعار المعلم - يستخدم صورة حقيقية إذا وُجدت، وإلا placeholder
+function TeacherLogo({ size = "md" }: { size?: "sm" | "md" | "lg" }) {
+  const [imgError, setImgError] = useState(false);
+  const sizeClass = {
+    sm: "w-10 h-10 text-sm",
+    md: "w-14 h-14 text-base",
+    lg: "w-20 h-20 text-xl",
+  }[size];
+
+  // حاول تحميل الصورة من /teacher-photo.jpg
+  if (!imgError) {
+    return (
+      <div className={`${sizeClass} rounded-full overflow-hidden border-2 border-white/40 shadow-lg shrink-0`}>
+        <img
+          src="/teacher-photo.jpg"
+          alt="المعلم فايز مروج"
+          className="w-full h-full object-cover"
+          onError={() => setImgError(true)}
+        />
+      </div>
+    );
+  }
+  // placeholder بأحرف "FM"
+  return (
+    <div
+      className={`${sizeClass} rounded-full bg-gradient-to-tr from-amber-500 via-orange-500 to-rose-500 flex items-center justify-center text-white font-bold shadow-lg border-2 border-white/40 shrink-0`}
+    >
+      ف.م
+    </div>
+  );
+}
+
+// شارة اسم المعلم
+function TeacherCredit({ variant = "light" }: { variant?: "light" | "dark" }) {
+  const colorClass =
+    variant === "dark"
+      ? "text-white/90 bg-white/10 backdrop-blur-sm border-white/20"
+      : "text-slate-700 bg-white/80 backdrop-blur-sm border-slate-200";
+  return (
+    <div
+      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs md:text-sm font-semibold border ${colorClass} shadow-sm`}
+    >
+      <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+      <span>تصميم وإعداد المعلم: فايز مروج</span>
+    </div>
+  );
+}
+
+// عداد متحرك
+function AnimatedCounter({
+  value,
+  suffix = "",
+  duration = 1500,
+}: {
+  value: number;
+  suffix?: string;
+  duration?: number;
+}) {
+  const [count, setCount] = useState(0);
+  const ref = useRef<HTMLSpanElement>(null);
+  const isInView = useInView(ref, { once: true });
+
+  useEffect(() => {
+    if (!isInView) return;
+    let startTime: number | null = null;
+    let rafId: number;
+    const animate = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      const progress = Math.min((timestamp - startTime) / duration, 1);
+      // easeOutExpo
+      const eased = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+      setCount(Math.floor(eased * value));
+      if (progress < 1) {
+        rafId = requestAnimationFrame(animate);
+      }
+    };
+    rafId = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(rafId);
+  }, [isInView, value, duration]);
+
+  return (
+    <span ref={ref} className="tabular-nums">
+      {count}
+      {suffix}
+    </span>
+  );
+}
+
+export function WelcomeScreen({ onStart, hasProgress, studentName, onContinue }: Props) {
   const [name, setName] = useState("");
   const [error, setError] = useState("");
 
@@ -29,9 +133,10 @@ export function WelcomeScreen({ onStart }: Props) {
   }
 
   return (
-    <div className="min-h-screen w-full relative overflow-hidden">
+    <div className="min-h-screen w-full relative overflow-hidden flex flex-col">
       {/* خلفية متدرجة علمية */}
       <div className="absolute inset-0 bg-gradient-to-bl from-indigo-950 via-blue-900 to-purple-950" />
+
       {/* أشكال هندسية زخرفية */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div
@@ -66,7 +171,38 @@ export function WelcomeScreen({ onStart }: Props) {
         ))}
       </div>
 
-      <div className="relative z-10 min-h-screen flex items-center justify-center p-4 md:p-8">
+      {/* ============ الترويسة العلوية ============ */}
+      <header className="relative z-20 px-4 md:px-8 py-4 md:py-5 flex items-center justify-between gap-3">
+        {/* شعار المعلم - يسار */}
+        <motion.div
+          initial={{ opacity: 0, x: -30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6 }}
+          className="flex items-center gap-3"
+        >
+          <TeacherLogo size="md" />
+          <div className="hidden sm:block">
+            <div className="text-white/95 font-bold text-sm md:text-base leading-tight">
+              المعلم فايز مروج
+            </div>
+            <div className="text-white/60 text-xs">
+              مُعِدّ ومصمّم المنصة
+            </div>
+          </div>
+        </motion.div>
+
+        {/* عبارة التصميم - يمين */}
+        <motion.div
+          initial={{ opacity: 0, x: 30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <TeacherCredit variant="dark" />
+        </motion.div>
+      </header>
+
+      {/* ============ المحتوى الرئيسي ============ */}
+      <div className="relative z-10 flex-1 flex items-center justify-center p-4 md:p-8">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -92,6 +228,7 @@ export function WelcomeScreen({ onStart }: Props) {
                 ابدأ بالاستكشاف، طبّق القوانين، واختبر نفسك بالكويزات التفاعلية.
               </p>
 
+              {/* شارات المنهج */}
               <div className="flex flex-wrap gap-2 justify-center mt-4">
                 <Badge variant="secondary" className="bg-indigo-50 text-indigo-700 border-indigo-200">
                   <BookOpen className="w-3 h-3 ml-1" />
@@ -106,9 +243,52 @@ export function WelcomeScreen({ onStart }: Props) {
                   قوانين + أمثلة + كويزات
                 </Badge>
               </div>
+
+              {/* عدّادات إحصائية متحركة */}
+              <div className="grid grid-cols-4 gap-2 mt-5 pt-4 border-t border-slate-200">
+                <StatCounter
+                  value={89}
+                  label="مفهوم"
+                  color="text-indigo-600"
+                />
+                <StatCounter
+                  value={75}
+                  label="قانون"
+                  color="text-purple-600"
+                />
+                <StatCounter
+                  value={50}
+                  label="سؤال تدريب"
+                  color="text-cyan-600"
+                />
+                <StatCounter
+                  value={15}
+                  suffix="+"
+                  label="ميزة"
+                  color="text-rose-600"
+                />
+              </div>
             </CardHeader>
 
             <CardContent className="p-6 md:p-8">
+              {/* زر متابعة التعلم إن وُجد تقدم سابق */}
+              {hasProgress && studentName && onContinue ? (
+                <div className="space-y-3">
+                  <Button
+                    onClick={onContinue}
+                    size="lg"
+                    className="w-full h-12 md:h-14 text-base md:text-lg font-bold bg-gradient-to-l from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-lg hover:shadow-xl transition-all group"
+                  >
+                    <PlayCircle className="w-5 h-5 mr-2" />
+                    <span>متابعة كـ {studentName}</span>
+                  </Button>
+                  <div className="text-center text-xs text-slate-500">أو</div>
+                  <div className="text-center text-xs text-slate-500">
+                    سجّل اسمًا جديدًا بالأسفل
+                  </div>
+                </div>
+              ) : null}
+
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="student-name" className="text-base font-semibold text-slate-700">
@@ -143,8 +323,74 @@ export function WelcomeScreen({ onStart }: Props) {
               </p>
             </CardContent>
           </Card>
+
+          {/* معاينة سريعة للميزات */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="mt-6 grid grid-cols-3 sm:grid-cols-6 gap-2"
+          >
+            <FeaturePreview icon={<Calculator className="w-4 h-4" />} label="حاسبة" />
+            <FeaturePreview icon={<FlaskConical className="w-4 h-4" />} label="محاكاة" />
+            <FeaturePreview icon={<Search className="w-4 h-4" />} label="بحث" />
+            <FeaturePreview icon={<Dumbbell className="w-4 h-4" />} label="تدريب" />
+            <FeaturePreview icon={<Trophy className="w-4 h-4" />} label="إنجازات" />
+            <FeaturePreview icon={<Brain className="w-4 h-4" />} label="مراجعة" />
+          </motion.div>
         </motion.div>
       </div>
+
+      {/* ============ التذييل ============ */}
+      <footer className="relative z-20 px-4 md:px-8 py-4 md:py-5 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-white/10">
+        <div className="flex items-center gap-2 text-white/70 text-xs md:text-sm">
+          <Atom className="w-4 h-4 text-cyan-400" />
+          <span>© 2026 منصة الفيزياء التفاعلية</span>
+          <span className="hidden sm:inline">•</span>
+          <span className="hidden sm:inline">جميع الحقوق محفوظة</span>
+        </div>
+        <TeacherCredit variant="dark" />
+      </footer>
+    </div>
+  );
+}
+
+function StatCounter({
+  value,
+  label,
+  suffix = "",
+  color,
+}: {
+  value: number;
+  label: string;
+  suffix?: string;
+  color: string;
+}) {
+  return (
+    <div className="text-center">
+      <div className={`text-xl md:text-2xl font-extrabold ${color}`}>
+        <AnimatedCounter value={value} suffix={suffix} />
+      </div>
+      <div className="text-[10px] md:text-xs text-slate-500 font-medium mt-0.5">
+        {label}
+      </div>
+    </div>
+  );
+}
+
+function FeaturePreview({
+  icon,
+  label,
+}: {
+  icon: React.ReactNode;
+  label: string;
+}) {
+  return (
+    <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-white/10 backdrop-blur-sm border border-white/10 hover:bg-white/15 transition-colors">
+      <div className="text-cyan-300">{icon}</div>
+      <span className="text-[10px] md:text-xs text-white/80 font-medium">
+        {label}
+      </span>
     </div>
   );
 }
