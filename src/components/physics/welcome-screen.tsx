@@ -32,6 +32,7 @@ import { getTodayKey } from "@/lib/physics/practice-questions";
 import { HowItWorks } from "./how-it-works";
 import { UnitsPreview } from "./units-preview";
 import { DailyChallengeCountdown } from "./daily-countdown";
+import { ParticlesBackground, AtomAnimation } from "./particles";
 
 type Props = {
   onStart: (name: string, grade: "9" | "10" | "all") => void;
@@ -294,23 +295,18 @@ export function WelcomeScreen({
       {/* خلفية متدرجة علمية */}
       <div className="absolute inset-0 bg-gradient-to-bl from-indigo-950 via-blue-900 to-purple-950" />
 
-      {/* أشكال هندسية زخرفية */}
+      {/* جسيمات متحركة + رموز فيزيائية عائمة */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <motion.div
-          className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-blue-500/20 blur-3xl"
-          animate={{ x: [0, 30, 0], y: [0, -20, 0] }}
-          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <motion.div
-          className="absolute -bottom-40 -left-32 w-[28rem] h-[28rem] rounded-full bg-purple-500/20 blur-3xl"
-          animate={{ x: [0, -40, 0], y: [0, 30, 0] }}
-          transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
-        />
+        {/* الجسيمات المتحركة */}
+        <ParticlesBackground count={35} />
+
+        {/* توهجات خلفية ناعمة (أبقينا واحدة فقط للعمق) */}
         <motion.div
           className="absolute top-1/3 left-1/4 w-72 h-72 rounded-full bg-cyan-400/10 blur-3xl"
           animate={{ scale: [1, 1.2, 1] }}
           transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
         />
+
         {/* رموز فيزيائية عائمة */}
         {[...Array(6)].map((_, i) => (
           <motion.div
@@ -376,9 +372,9 @@ export function WelcomeScreen({
                 initial={{ scale: 0, rotate: -180 }}
                 animate={{ scale: 1, rotate: 0 }}
                 transition={{ type: "spring", delay: 0.2, stiffness: 120 }}
-                className="mx-auto w-20 h-20 md:w-24 md:h-24 rounded-2xl bg-gradient-to-tr from-indigo-600 via-blue-600 to-purple-600 flex items-center justify-center shadow-lg mb-4"
+                className="mx-auto w-20 h-20 md:w-24 md:h-24 rounded-2xl bg-gradient-to-tr from-indigo-600 via-blue-600 to-purple-600 flex items-center justify-center shadow-lg mb-4 overflow-hidden"
               >
-                <Atom className="w-10 h-10 md:w-12 md:h-12 text-white" strokeWidth={1.5} />
+                <AtomAnimation size={80} />
               </motion.div>
 
               <h1 className="text-3xl md:text-4xl font-extrabold bg-gradient-to-l from-indigo-700 via-blue-700 to-purple-700 bg-clip-text text-transparent mb-2">
