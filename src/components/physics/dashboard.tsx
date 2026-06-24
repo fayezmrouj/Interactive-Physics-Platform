@@ -33,7 +33,7 @@ import {
   Hourglass,
   Zap,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   ALL_UNITS,
   CURRICULUM,
@@ -56,6 +56,8 @@ type Props = {
   onLogout: () => void;
   onShowCertificate: () => void;
   onOpenFeatures: () => void;
+  pendingUnitId?: string | null;
+  onConsumedPendingUnit?: () => void;
 };
 
 export function Dashboard({
@@ -65,6 +67,8 @@ export function Dashboard({
   onLogout,
   onShowCertificate,
   onOpenFeatures,
+  pendingUnitId,
+  onConsumedPendingUnit,
 }: Props) {
   const totalLessons = CURRICULUM_STATS.totalLessons;
   const completedCount = profile.completedLessons.length;
@@ -451,6 +455,8 @@ export function Dashboard({
                   unit={unit}
                   profile={profile}
                   onOpenLesson={onOpenLesson}
+                  isPending={pendingUnitId === unit.id}
+                  onConsumedPending={onConsumedPendingUnit}
                 />
               ))}
             </motion.div>
@@ -489,12 +495,40 @@ function UnitCard({
   unit,
   profile,
   onOpenLesson,
+  isPending = false,
+  onConsumedPending,
 }: {
   unit: Unit;
   profile: UserProfile;
   onOpenLesson: (lessonId: string) => void;
+  isPending?: boolean;
+  onConsumedPending?: () => void;
 }) {
   const [open, setOpen] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  // عند وصول وحدة "معلّقة" (تم اختيارها من صفحة الترحيب)، افتحها ومرّر لها
+  useEffect(() => {
+    if (!isPending) return;
+    // استخدم setTimeout لتفادي قاعدة setState في effect
+    const t1 = setTimeout(() => setOpen(true), 100);
+    const t2 = setTimeout(() => {
+      cardRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 300);
+    // أخبر الأب أننا استهلكنا الوحدة المعلّقة بعد 5 ثوانٍ
+    const t3 = setTimeout(() => {
+      onConsumedPending?.();
+    }, 5000);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+    };
+  }, [isPending, onConsumedPending]);
+
   const lessonsCompleted = unit.lessons.filter((l) =>
     profile.completedLessons.includes(l.id)
   ).length;
@@ -505,12 +539,22 @@ function UnitCard({
 
   return (
     <Card
-      className={`overflow-hidden border transition-all ${
-        allDone
+      ref={cardRef}
+      className={`overflow-hidden border transition-all scroll-mt-20 ${
+        isPending
+          ? "border-amber-400 dark:border-amber-600 ring-4 ring-amber-200 dark:ring-amber-900/50 shadow-xl scale-[1.01]"
+          : allDone
           ? "border-emerald-300 dark:border-emerald-700 bg-emerald-50/50 dark:bg-emerald-950/20 shadow-md"
           : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm hover:shadow-md"
       }`}
     >
+      {/* شارة "اخترت هذه الوحدة" */}
+      {isPending && (
+        <div className="bg-gradient-to-l from-amber-400 to-orange-400 text-white text-xs font-bold px-4 py-1.5 flex items-center gap-2">
+          <Sparkles className="w-3.5 h-3.5" />
+          اخترت هذه الوحدة من صفحة الترحيب — هيا نبدأ!
+        </div>
+      )}
       <Collapsible open={open} onOpenChange={setOpen}>
         <CollapsibleTrigger asChild>
           <button className="w-full text-right">

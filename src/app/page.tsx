@@ -43,6 +43,8 @@ export default function Home() {
   const [view, setView] = useState<View>({ type: "dashboard" });
   const [showCertificate, setShowCertificate] = useState(false);
   const [featuresOpen, setFeaturesOpen] = useState(false);
+  // وحدة مميزة من صفحة الترحيب - ستُفتح تلقائيًا في لوحة التحكم
+  const [pendingUnitId, setPendingUnitId] = useState<string | null>(null);
 
   // تتبع الوضع اللوني للإنجازات - تجنّب الحلقة اللانهائية بالتحقق من التغيير
   const lastThemeRef = useRef<string | null>(null);
@@ -109,8 +111,13 @@ export default function Home() {
     return () => window.removeEventListener("physics-achievements-unlocked", handler);
   }, []);
 
-  function handleStart(name: string, grade: "9" | "10" | "all") {
+  function handleStart(
+    name: string,
+    grade: "9" | "10" | "all",
+    selectedUnitId?: string | null
+  ) {
     setStudentName(name, grade);
+    setPendingUnitId(selectedUnitId || null);
     setView({ type: "dashboard" });
     toast.success(`أهلاً بك ${name}! ابدأ رحلتك في عالم الفيزياء 🚀`);
   }
@@ -273,6 +280,8 @@ export default function Home() {
           onLogout={handleLogout}
           onShowCertificate={handleShowCertificate}
           onOpenFeatures={() => setFeaturesOpen(true)}
+          pendingUnitId={pendingUnitId}
+          onConsumedPendingUnit={() => setPendingUnitId(null)}
         />
         <FeaturesDrawer
           activeProfile={activeProfile}

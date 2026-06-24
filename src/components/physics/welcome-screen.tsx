@@ -36,7 +36,7 @@ import { DailyChallengeCountdown } from "./daily-countdown";
 import { ParticlesBackground, AtomAnimation } from "./particles";
 
 type Props = {
-  onStart: (name: string, grade: "9" | "10" | "all") => void;
+  onStart: (name: string, grade: "9" | "10" | "all", selectedUnitId?: string | null) => void;
   hasProgress?: boolean;
   studentName?: string;
   onContinue?: () => void;
@@ -280,9 +280,13 @@ export function WelcomeScreen({
   const [error, setError] = useState("");
   const [showHowItWorks, setShowHowItWorks] = useState(false);
   const [selectedUnitHint, setSelectedUnitHint] = useState<string | null>(null);
+  const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
 
-  function handleUnitClick(unitTitle: string, unitGrade: string) {
+  function handleUnitClick(unitId: string, unitTitle: string, unitGrade: string) {
+    // احفظ الوحدة المختارة - ستُفتح تلقائيًا بعد التسجيل
+    setSelectedUnitId(unitId);
+
     // اعرض تلميحًا للمستخدم بوحدة مختارة
     setSelectedUnitHint(`📖 اخترت "${unitTitle}" — سجّل اسمك للبدء بهذه الوحدة`);
 
@@ -314,7 +318,7 @@ export function WelcomeScreen({
       return;
     }
     setError("");
-    onStart(trimmed, grade);
+    onStart(trimmed, grade, selectedUnitId);
   }
 
   return (
@@ -598,7 +602,7 @@ export function WelcomeScreen({
                   // ابحث عن الوحدة لاستخراج العنوان والصف
                   const unit = ALL_UNITS.find((u) => u.id === unitId);
                   if (unit) {
-                    handleUnitClick(unit.title, unit.grade);
+                    handleUnitClick(unit.id, unit.title, unit.grade);
                   }
                 }}
               />
