@@ -3,6 +3,7 @@
 import { useCallback, useSyncExternalStore } from "react";
 
 const STORAGE_KEY = "physics-platform-state-v1";
+const THEME_KEY = "physics-platform-theme"; // يُدار عبر next-themes لكن نحتفظ بالمرجع
 
 export type ProgressState = {
   studentName: string;
@@ -10,6 +11,9 @@ export type ProgressState = {
   quizResults: Record<string, { correct: number; total: number }>; // lessonId -> result
   lastVisited: string | null; // lessonId
   startedAt: number | null;
+  lessonTimeSeconds: Record<string, number>; // lessonId -> seconds spent
+  totalTimeSeconds: number; // total time across all sessions
+  certificateIssuedAt: number | null; // timestamp when certificate was first eligible
 };
 
 const DEFAULT_STATE: ProgressState = {
@@ -18,6 +22,9 @@ const DEFAULT_STATE: ProgressState = {
   quizResults: {},
   lastVisited: null,
   startedAt: null,
+  lessonTimeSeconds: {},
+  totalTimeSeconds: 0,
+  certificateIssuedAt: null,
 };
 
 // Cache على مستوى الوحدة لتجنب القراءة المتكررة من localStorage
@@ -119,6 +126,22 @@ export function useProgress() {
     writeToStorage(next);
   }, []);
 
+  // إضافة وقت للدرس + الإجمالي
+  const addLessonTime = useCallback((lessonId: string, seconds: number) => {
+    if (seconds <= 0) return;
+    const cur = readFromStorage();
+    const prevLessonTime = cur.lessonTimeSeconds[lessonId] || 0;
+    const next: ProgressState = {
+      ...cur,
+      lessonTimeSeconds: {
+        ...cur.lessonTimeSeconds,
+        [lessonId]: prevLessonTime + seconds,
+      },
+      totalTimeSeconds: cur.totalTimeSeconds + seconds,
+    };
+    writeToStorage(next);
+  }, []);
+
   const resetProgress = useCallback(() => {
     writeToStorage(DEFAULT_STATE);
   }, []);
@@ -127,6 +150,22 @@ export function useProgress() {
     writeToStorage(DEFAULT_STATE);
   }, []);
 
+  // إصدار شهادة عند إكمال المنهج (نُسجّل تاريخ الإصدار أول مرة)
+  const issueCertificateIfEligible = useCallback(
+    (totalLessons: number): { eligible: boolean; issued: boolean } => {
+      const cur = readFromStorage();
+      const completedCount = cur.completedLessons.length;
+      const eligible = completedCount >= totalLessons && totalLessons > 0;
+      if (eligible && !cur.certificateIssuedAt) {
+        const next: ProgressState = { ...cur, certificateIssuedAt: Date.now() };
+        writeToStorage(next);
+        return { eligible: true, issued: true };
+      }
+      return { eligible, issued: false };
+    },
+    []
+  );
+
   return {
     state,
     setStudentName,
@@ -134,8 +173,10 @@ export function useProgress() {
     uncompleteLesson,
     setQuizResult,
     setLastVisited,
+    addLessonTime,
     resetProgress,
     logout,
+    issueCertificateIfEligible,
   };
 }
 
@@ -147,4 +188,19 @@ export function useIsMounted(): boolean {
     () => true,
     () => false
   );
+}
+
+// تنسيق الثواني بصيغة "س:د:ث" أو "د:ث"
+export function formatTime(totalSeconds: number): string {
+  if (totalSeconds < 0) totalSeconds = 0;
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = Math.floor(totalSeconds % 60);
+  if (h > 0) {
+    return `${h} س ${m.toString().padStart(2, "0")} د ${s.toString().padStart(2, "0")} ث`;
+  }
+  if (m > 0) {
+    return `${m} د ${s.toString().padStart(2, "0")} ث`;
+  }
+  return `${s} ث`;
 }

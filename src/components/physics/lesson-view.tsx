@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -33,6 +33,7 @@ import {
   CircleCheck,
   CircleCheckBig,
   CircleHelp,
+  Clock,
   Eye,
   EyeOff,
   FlaskConical,
@@ -49,6 +50,8 @@ import {
 } from "lucide-react";
 import type { Lesson, Unit } from "@/lib/physics";
 import { ALL_LESSON_IDS, findLesson } from "@/lib/physics";
+import { TimeTracker } from "./time-tracker";
+import { formatTime } from "@/lib/use-progress";
 
 type Props = {
   lessonId: string;
@@ -57,6 +60,7 @@ type Props = {
   onComplete: () => void;
   onNavigateLesson: (lessonId: string) => void;
   onQuizResult: (correct: number, total: number) => void;
+  lessonTimeSpent: number;
 };
 
 export function LessonView({
@@ -66,6 +70,7 @@ export function LessonView({
   onComplete,
   onNavigateLesson,
   onQuizResult,
+  lessonTimeSpent,
 }: Props) {
   const found = findLesson(lessonId);
   if (!found) {
@@ -86,15 +91,21 @@ export function LessonView({
   const currentIdx = ALL_LESSON_IDS.indexOf(lessonId);
   const prevLessonId = currentIdx > 0 ? ALL_LESSON_IDS[currentIdx - 1] : null;
   const nextLessonId =
-    currentIdx < ALL_LESSON_IDS.length - 1 ? ALL_LESSON_IDS[currentIdx + 1] : null;
+    currentIdx < ALL_LESSON_IDS.length - 1
+      ? ALL_LESSON_IDS[currentIdx + 1]
+      : null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
+      {/* مكوّن تتبع الوقت - يعمل في الخلفية */}
+      <TimeTracker lessonId={lessonId} />
+
       <LessonHeader
         lesson={lesson}
         unit={unit}
         isCompleted={isCompleted}
         onBack={onBack}
+        lessonTimeSpent={lessonTimeSpent}
       />
 
       <main className="max-w-4xl mx-auto px-4 py-6 md:py-10 space-y-6 md:space-y-8">
@@ -104,7 +115,7 @@ export function LessonView({
           color="amber"
           title="الفكرة الرئيسة"
         >
-          <p className="text-slate-700 leading-relaxed text-base md:text-lg">
+          <p className="text-slate-700 dark:text-slate-200 leading-relaxed text-base md:text-lg">
             {lesson.mainIdea}
           </p>
         </SectionCard>
@@ -126,10 +137,12 @@ export function LessonView({
                 transition={{ delay: i * 0.05 }}
                 className="flex items-start gap-3"
               >
-                <span className="mt-1 w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold flex items-center justify-center shrink-0">
+                <span className="mt-1 w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 text-xs font-bold flex items-center justify-center shrink-0">
                   {i + 1}
                 </span>
-                <span className="text-slate-700 leading-relaxed">{obj}</span>
+                <span className="text-slate-700 dark:text-slate-200 leading-relaxed">
+                  {obj}
+                </span>
               </motion.li>
             ))}
           </ul>
@@ -142,9 +155,9 @@ export function LessonView({
           title="شرح الدرس"
           subtitle="التفسير المفصّل للمفاهيم الفيزيائية"
         >
-          <div className="prose prose-slate max-w-none space-y-4">
+          <div className="prose prose-slate dark:prose-invert max-w-none space-y-4">
             {lesson.explanation.map((para, i) => (
-              <p key={i} className="text-slate-700 leading-loose text-base">
+              <p key={i} className="text-slate-700 dark:text-slate-200 leading-loose text-base">
                 {para}
               </p>
             ))}
@@ -162,10 +175,12 @@ export function LessonView({
             {lesson.concepts.map((c, i) => (
               <div
                 key={i}
-                className="bg-purple-50/50 border border-purple-200 rounded-xl p-4 hover:bg-purple-50 transition-colors"
+                className="bg-purple-50/50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-900 rounded-xl p-4 hover:bg-purple-50 dark:hover:bg-purple-950/30 transition-colors"
               >
                 <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
-                  <h4 className="font-bold text-purple-900 text-base">{c.term}</h4>
+                  <h4 className="font-bold text-purple-900 dark:text-purple-200 text-base">
+                    {c.term}
+                  </h4>
                   <div className="flex items-center gap-1 flex-wrap">
                     {c.symbol && (
                       <Badge className="bg-purple-600 text-white border-0">
@@ -173,19 +188,28 @@ export function LessonView({
                       </Badge>
                     )}
                     {c.unit && (
-                      <Badge variant="outline" className="border-purple-300 text-purple-700">
+                      <Badge
+                        variant="outline"
+                        className="border-purple-300 dark:border-purple-800 text-purple-700 dark:text-purple-300"
+                      >
                         <span className="math-formula">{c.unit}</span>
                       </Badge>
                     )}
                   </div>
                 </div>
                 {c.value && (
-                  <div className="mb-2 px-2 py-1 bg-amber-100 border border-amber-300 rounded text-xs">
-                    <span className="font-semibold text-amber-800">القيمة: </span>
-                    <span className="math-formula text-amber-900">{c.value}</span>
+                  <div className="mb-2 px-2 py-1 bg-amber-100 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 rounded text-xs">
+                    <span className="font-semibold text-amber-800 dark:text-amber-300">
+                      القيمة:{" "}
+                    </span>
+                    <span className="math-formula text-amber-900 dark:text-amber-200">
+                      {c.value}
+                    </span>
                   </div>
                 )}
-                <p className="text-sm text-slate-700 leading-relaxed">{c.definition}</p>
+                <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+                  {c.definition}
+                </p>
               </div>
             ))}
           </div>
@@ -202,14 +226,18 @@ export function LessonView({
             {lesson.formulas.map((f, i) => (
               <div
                 key={i}
-                className="bg-gradient-to-l from-cyan-50 to-blue-50 border border-cyan-200 rounded-xl p-4 flex flex-col md:flex-row md:items-center gap-3 hover:shadow-md transition-shadow"
+                className="bg-gradient-to-l from-cyan-50 to-blue-50 dark:from-cyan-950/30 dark:to-blue-950/30 border border-cyan-200 dark:border-cyan-900 rounded-xl p-4 flex flex-col md:flex-row md:items-center gap-3 hover:shadow-md transition-shadow"
               >
                 <div className="flex-1">
-                  <h4 className="font-bold text-cyan-900 mb-1">{f.name}</h4>
-                  <p className="text-sm text-slate-600">{f.description}</p>
+                  <h4 className="font-bold text-cyan-900 dark:text-cyan-200 mb-1">
+                    {f.name}
+                  </h4>
+                  <p className="text-sm text-slate-600 dark:text-slate-300">
+                    {f.description}
+                  </p>
                 </div>
-                <div className="bg-white rounded-lg px-4 py-3 border-2 border-cyan-300 shadow-sm shrink-0 self-start md:self-center">
-                  <span className="math-formula text-cyan-900 text-base md:text-lg font-bold">
+                <div className="bg-white dark:bg-slate-800 rounded-lg px-4 py-3 border-2 border-cyan-300 dark:border-cyan-700 shadow-sm shrink-0 self-start md:self-center">
+                  <span className="math-formula text-cyan-900 dark:text-cyan-200 text-base md:text-lg font-bold">
                     {f.expression}
                   </span>
                 </div>
@@ -225,19 +253,24 @@ export function LessonView({
           title="أمثلة محلولة خطوة بخطوة"
           subtitle="مع المعطيات والمطلوب وطريقة الحل"
         >
-          <Accordion type="single" collapsible defaultValue="example-0" className="w-full">
+          <Accordion
+            type="single"
+            collapsible
+            defaultValue="example-0"
+            className="w-full"
+          >
             {lesson.examples.map((ex, i) => (
               <AccordionItem
                 key={i}
                 value={`example-${i}`}
-                className="border border-emerald-200 rounded-xl mb-3 overflow-hidden bg-emerald-50/30"
+                className="border border-emerald-200 dark:border-emerald-900 rounded-xl mb-3 overflow-hidden bg-emerald-50/30 dark:bg-emerald-950/10"
               >
-                <AccordionTrigger className="px-4 py-3 hover:bg-emerald-50 no-underline">
+                <AccordionTrigger className="px-4 py-3 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 no-underline">
                   <div className="flex items-center gap-2 text-right flex-1">
                     <span className="w-7 h-7 rounded-full bg-emerald-600 text-white text-xs font-bold flex items-center justify-center shrink-0">
                       {i + 1}
                     </span>
-                    <span className="font-semibold text-slate-800 text-sm md:text-base">
+                    <span className="font-semibold text-slate-800 dark:text-slate-100 text-sm md:text-base">
                       {ex.title}
                     </span>
                   </div>
@@ -245,56 +278,50 @@ export function LessonView({
                 <AccordionContent className="px-4 pb-4">
                   <div className="space-y-3">
                     <div className="grid sm:grid-cols-2 gap-3">
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                        <div className="text-xs font-bold text-blue-700 mb-1">
+                      <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900 rounded-lg p-3">
+                        <div className="text-xs font-bold text-blue-700 dark:text-blue-300 mb-1">
                           المعطيات
                         </div>
-                        <p className="text-sm text-slate-700 leading-relaxed">
+                        <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
                           {ex.given}
                         </p>
                       </div>
-                      <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
-                        <div className="text-xs font-bold text-purple-700 mb-1">
+                      <div className="bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-900 rounded-lg p-3">
+                        <div className="text-xs font-bold text-purple-700 dark:text-purple-300 mb-1">
                           المطلوب
                         </div>
-                        <p className="text-sm text-slate-700 leading-relaxed">
+                        <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
                           {ex.required}
                         </p>
                       </div>
                     </div>
-                    <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
-                      <div className="text-xs font-bold text-slate-700 mb-2">
+                    <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg p-3">
+                      <div className="text-xs font-bold text-slate-700 dark:text-slate-200 mb-2">
                         الحل
                       </div>
                       <ol className="space-y-1.5">
                         {ex.steps.map((step, si) => (
                           <li
                             key={si}
-                            className="text-sm text-slate-700 flex items-start gap-2"
+                            className="text-sm text-slate-700 dark:text-slate-200 flex items-start gap-2"
                           >
-                            <span className="text-slate-400 mt-0.5 shrink-0">
+                            <span className="text-slate-400 dark:text-slate-500 mt-0.5 shrink-0">
                               {si + 1}.
                             </span>
-                            <span
-                              className={
-                                /math-formula/.test(step)
-                                  ? "math-formula"
-                                  : ""
-                              }
-                            >
+                            <span className={/math-formula/.test(step) ? "math-formula" : ""}>
                               {step}
                             </span>
                           </li>
                         ))}
                       </ol>
                     </div>
-                    <div className="bg-emerald-100 border-2 border-emerald-300 rounded-lg p-3 flex items-start gap-2">
-                      <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                    <div className="bg-emerald-100 dark:bg-emerald-950/30 border-2 border-emerald-300 dark:border-emerald-800 rounded-lg p-3 flex items-start gap-2">
+                      <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
                       <div>
-                        <div className="text-xs font-bold text-emerald-700 mb-0.5">
+                        <div className="text-xs font-bold text-emerald-700 dark:text-emerald-400 mb-0.5">
                           الإجابة النهائية
                         </div>
-                        <p className="text-sm text-emerald-900 font-medium leading-relaxed">
+                        <p className="text-sm text-emerald-900 dark:text-emerald-200 font-medium leading-relaxed">
                           {ex.answer}
                         </p>
                       </div>
@@ -350,6 +377,7 @@ export function LessonView({
           prevLessonId={prevLessonId}
           nextLessonId={nextLessonId}
           onNavigateLesson={onNavigateLesson}
+          lessonTimeSpent={lessonTimeSpent}
         />
       </main>
     </div>
@@ -365,12 +393,22 @@ function LessonHeader({
   unit,
   isCompleted,
   onBack,
+  lessonTimeSpent,
 }: {
   lesson: Lesson;
   unit: Unit;
   isCompleted: boolean;
   onBack: () => void;
+  lessonTimeSpent: number;
 }) {
+  // عرض حي للوقت: استخدم lessonTimeSpent مباشرة + علامة تحديث كل دقيقة لإعادة الرسم
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => setTick((t) => t + 1), 60000);
+    return () => clearInterval(interval);
+  }, []);
+  const liveTime = lessonTimeSpent;
+
   return (
     <header className={`bg-gradient-to-l ${unit.color} text-white shadow-lg`}>
       <div className="max-w-4xl mx-auto px-4 py-4 md:py-6">
@@ -393,6 +431,12 @@ function LessonHeader({
                   مكتمل
                 </Badge>
               )}
+              {lessonTimeSpent > 0 && (
+                <Badge className="bg-white/20 backdrop-blur-sm text-white border-0 gap-1">
+                  <Clock className="w-3 h-3" />
+                  {formatTime(liveTime)}
+                </Badge>
+              )}
             </div>
             <h1 className="text-xl md:text-3xl font-bold">{lesson.title}</h1>
             {lesson.englishTitle && (
@@ -407,16 +451,64 @@ function LessonHeader({
   );
 }
 
-const COLOR_MAP: Record<string, { bg: string; text: string; border: string; iconBg: string }> = {
-  amber: { bg: "bg-amber-50", text: "text-amber-700", border: "border-amber-200", iconBg: "bg-amber-500" },
-  indigo: { bg: "bg-indigo-50", text: "text-indigo-700", border: "border-indigo-200", iconBg: "bg-indigo-500" },
-  blue: { bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-200", iconBg: "bg-blue-500" },
-  purple: { bg: "bg-purple-50", text: "text-purple-700", border: "border-purple-200", iconBg: "bg-purple-500" },
-  cyan: { bg: "bg-cyan-50", text: "text-cyan-700", border: "border-cyan-200", iconBg: "bg-cyan-500" },
-  emerald: { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200", iconBg: "bg-emerald-500" },
-  rose: { bg: "bg-rose-50", text: "text-rose-700", border: "border-rose-200", iconBg: "bg-rose-500" },
-  orange: { bg: "bg-orange-50", text: "text-orange-700", border: "border-orange-200", iconBg: "bg-orange-500" },
-  violet: { bg: "bg-violet-50", text: "text-violet-700", border: "border-violet-200", iconBg: "bg-violet-500" },
+const COLOR_MAP: Record<
+  string,
+  { bg: string; text: string; border: string; iconBg: string }
+> = {
+  amber: {
+    bg: "bg-amber-50 dark:bg-amber-950/20",
+    text: "text-amber-700 dark:text-amber-300",
+    border: "border-amber-200 dark:border-amber-900",
+    iconBg: "bg-amber-500",
+  },
+  indigo: {
+    bg: "bg-indigo-50 dark:bg-indigo-950/20",
+    text: "text-indigo-700 dark:text-indigo-300",
+    border: "border-indigo-200 dark:border-indigo-900",
+    iconBg: "bg-indigo-500",
+  },
+  blue: {
+    bg: "bg-blue-50 dark:bg-blue-950/20",
+    text: "text-blue-700 dark:text-blue-300",
+    border: "border-blue-200 dark:border-blue-900",
+    iconBg: "bg-blue-500",
+  },
+  purple: {
+    bg: "bg-purple-50 dark:bg-purple-950/20",
+    text: "text-purple-700 dark:text-purple-300",
+    border: "border-purple-200 dark:border-purple-900",
+    iconBg: "bg-purple-500",
+  },
+  cyan: {
+    bg: "bg-cyan-50 dark:bg-cyan-950/20",
+    text: "text-cyan-700 dark:text-cyan-300",
+    border: "border-cyan-200 dark:border-cyan-900",
+    iconBg: "bg-cyan-500",
+  },
+  emerald: {
+    bg: "bg-emerald-50 dark:bg-emerald-950/20",
+    text: "text-emerald-700 dark:text-emerald-300",
+    border: "border-emerald-200 dark:border-emerald-900",
+    iconBg: "bg-emerald-500",
+  },
+  rose: {
+    bg: "bg-rose-50 dark:bg-rose-950/20",
+    text: "text-rose-700 dark:text-rose-300",
+    border: "border-rose-200 dark:border-rose-900",
+    iconBg: "bg-rose-500",
+  },
+  orange: {
+    bg: "bg-orange-50 dark:bg-orange-950/20",
+    text: "text-orange-700 dark:text-orange-300",
+    border: "border-orange-200 dark:border-orange-900",
+    iconBg: "bg-orange-500",
+  },
+  violet: {
+    bg: "bg-violet-50 dark:bg-violet-950/20",
+    text: "text-violet-700 dark:text-violet-300",
+    border: "border-violet-200 dark:border-violet-900",
+    iconBg: "bg-violet-500",
+  },
 };
 
 function SectionCard({
@@ -440,16 +532,20 @@ function SectionCard({
       viewport={{ once: true, margin: "-50px" }}
       transition={{ duration: 0.4 }}
     >
-      <Card className={`border ${c.border} shadow-sm overflow-hidden`}>
+      <Card className={`border ${c.border} dark:${c.border} shadow-sm overflow-hidden bg-white dark:bg-slate-900`}>
         <CardHeader className={`${c.bg} pb-3`}>
           <div className="flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-lg ${c.iconBg} text-white flex items-center justify-center shrink-0 shadow-sm`}>
+            <div
+              className={`w-10 h-10 rounded-lg ${c.iconBg} text-white flex items-center justify-center shrink-0 shadow-sm`}
+            >
               {icon}
             </div>
             <div>
-              <CardTitle className={`text-base md:text-lg ${c.text}`}>{title}</CardTitle>
+              <CardTitle className={`text-base md:text-lg ${c.text}`}>
+                {title}
+              </CardTitle>
               {subtitle && (
-                <CardDescription className="text-slate-500 text-xs md:text-sm">
+                <CardDescription className="text-slate-500 dark:text-slate-400 text-xs md:text-sm">
                   {subtitle}
                 </CardDescription>
               )}
@@ -466,27 +562,38 @@ function ExperimentSection({ experiment }: { experiment: Lesson["experiment"] })
   const [showAnswer, setShowAnswer] = useState(false);
   return (
     <div className="space-y-4">
-      <div className="bg-rose-50/50 border border-rose-200 rounded-xl p-4">
-        <h4 className="font-bold text-rose-900 mb-2 flex items-center gap-2">
+      <div className="bg-rose-50/50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900 rounded-xl p-4">
+        <h4 className="font-bold text-rose-900 dark:text-rose-200 mb-2 flex items-center gap-2">
           <FlaskConical className="w-4 h-4" />
           {experiment.title}
         </h4>
         <div className="space-y-3 mt-3">
           <div>
-            <div className="text-xs font-bold text-slate-600 mb-1">الأدوات والمواد:</div>
+            <div className="text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">
+              الأدوات والمواد:
+            </div>
             <div className="flex flex-wrap gap-2">
               {experiment.tools.map((tool, i) => (
-                <Badge key={i} variant="outline" className="bg-white border-rose-300 text-rose-700">
+                <Badge
+                  key={i}
+                  variant="outline"
+                  className="bg-white dark:bg-slate-800 border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-300"
+                >
                   {tool}
                 </Badge>
               ))}
             </div>
           </div>
           <div>
-            <div className="text-xs font-bold text-slate-600 mb-1">خطوات العمل:</div>
+            <div className="text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">
+              خطوات العمل:
+            </div>
             <ol className="space-y-1.5">
               {experiment.steps.map((step, i) => (
-                <li key={i} className="flex items-start gap-2 text-sm text-slate-700">
+                <li
+                  key={i}
+                  className="flex items-start gap-2 text-sm text-slate-700 dark:text-slate-200"
+                >
                   <span className="w-5 h-5 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">
                     {i + 1}
                   </span>
@@ -498,12 +605,14 @@ function ExperimentSection({ experiment }: { experiment: Lesson["experiment"] })
         </div>
       </div>
 
-      <div className="bg-gradient-to-l from-violet-50 to-rose-50 border-2 border-violet-300 rounded-xl p-4">
+      <div className="bg-gradient-to-l from-violet-50 to-rose-50 dark:from-violet-950/30 dark:to-rose-950/30 border-2 border-violet-300 dark:border-violet-800 rounded-xl p-4">
         <div className="flex items-center gap-2 mb-2">
-          <CircleHelp className="w-5 h-5 text-violet-700" />
-          <h4 className="font-bold text-violet-900">سؤال تفاعلي للتفكير</h4>
+          <CircleHelp className="w-5 h-5 text-violet-700 dark:text-violet-300" />
+          <h4 className="font-bold text-violet-900 dark:text-violet-200">
+            سؤال تفاعلي للتفكير
+          </h4>
         </div>
-        <p className="text-sm md:text-base text-slate-800 leading-relaxed mb-3">
+        <p className="text-sm md:text-base text-slate-800 dark:text-slate-100 leading-relaxed mb-3">
           {experiment.question}
         </p>
         <Collapsible open={showAnswer} onOpenChange={setShowAnswer}>
@@ -511,7 +620,7 @@ function ExperimentSection({ experiment }: { experiment: Lesson["experiment"] })
             variant="outline"
             size="sm"
             onClick={() => setShowAnswer(!showAnswer)}
-            className="border-violet-300 text-violet-700 hover:bg-violet-100"
+            className="border-violet-300 dark:border-violet-800 text-violet-700 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-950/40"
           >
             {showAnswer ? (
               <>
@@ -529,10 +638,14 @@ function ExperimentSection({ experiment }: { experiment: Lesson["experiment"] })
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
-              className="mt-3 bg-white/80 backdrop-blur-sm rounded-lg p-3 border border-violet-200"
+              className="mt-3 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-lg p-3 border border-violet-200 dark:border-violet-800"
             >
-              <div className="text-xs font-bold text-emerald-700 mb-1">الإجابة النموذجية:</div>
-              <p className="text-sm text-slate-700 leading-relaxed">{experiment.expectedAnswer}</p>
+              <div className="text-xs font-bold text-emerald-700 dark:text-emerald-400 mb-1">
+                الإجابة النموذجية:
+              </div>
+              <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
+                {experiment.expectedAnswer}
+              </p>
             </motion.div>
           </CollapsibleContent>
         </Collapsible>
@@ -549,33 +662,43 @@ function MisconceptionCard({
   index: number;
 }) {
   return (
-    <div className="border border-orange-200 rounded-xl overflow-hidden">
-      <div className="bg-rose-50 p-3 border-b border-rose-200">
+    <div className="border border-orange-200 dark:border-orange-900 rounded-xl overflow-hidden">
+      <div className="bg-rose-50 dark:bg-rose-950/30 p-3 border-b border-rose-200 dark:border-rose-900">
         <div className="flex items-start gap-2">
-          <XCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+          <XCircle className="w-5 h-5 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
           <div>
-            <div className="text-xs font-bold text-rose-700 mb-0.5">
+            <div className="text-xs font-bold text-rose-700 dark:text-rose-300 mb-0.5">
               خطأ شائع #{index + 1}
             </div>
-            <p className="text-sm text-slate-700 leading-relaxed">{misconception.wrong}</p>
+            <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
+              {misconception.wrong}
+            </p>
           </div>
         </div>
       </div>
-      <div className="bg-emerald-50 p-3 border-b border-emerald-200">
+      <div className="bg-emerald-50 dark:bg-emerald-950/30 p-3 border-b border-emerald-200 dark:border-emerald-900">
         <div className="flex items-start gap-2">
-          <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+          <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
           <div>
-            <div className="text-xs font-bold text-emerald-700 mb-0.5">الصواب</div>
-            <p className="text-sm text-slate-700 leading-relaxed">{misconception.correct}</p>
+            <div className="text-xs font-bold text-emerald-700 dark:text-emerald-300 mb-0.5">
+              الصواب
+            </div>
+            <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
+              {misconception.correct}
+            </p>
           </div>
         </div>
       </div>
-      <div className="bg-amber-50 p-3">
+      <div className="bg-amber-50 dark:bg-amber-950/30 p-3">
         <div className="flex items-start gap-2">
-          <Lightbulb className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+          <Lightbulb className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
           <div>
-            <div className="text-xs font-bold text-amber-700 mb-0.5">لماذا؟</div>
-            <p className="text-sm text-slate-700 leading-relaxed">{misconception.explanation}</p>
+            <div className="text-xs font-bold text-amber-700 dark:text-amber-300 mb-0.5">
+              لماذا؟
+            </div>
+            <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
+              {misconception.explanation}
+            </p>
           </div>
         </div>
       </div>
@@ -602,11 +725,6 @@ function QuizSection({
     setShowSolutions((s) => ({ ...s, [qid]: !s[qid] }));
   }
 
-  function submitOne(qid: string) {
-    setShowSolutions((s) => ({ ...s, [qid]: true }));
-    setSubmitted((s) => ({ ...s, [qid]: true }));
-  }
-
   function submitAll() {
     const newSub: Record<string, boolean> = {};
     const newShow: Record<string, boolean> = {};
@@ -620,7 +738,6 @@ function QuizSection({
     const correct = lesson.quiz.filter((q) => {
       const userAns = (answers[q.id] || "").trim();
       const correctAns = q.answer.trim();
-      // للأسئلة الرقمية، اسمح بفاصلة عشرية
       if (q.type === "numeric") {
         const userNum = parseFloat(userAns);
         const correctNum = parseFloat(correctAns);
@@ -634,12 +751,14 @@ function QuizSection({
     onResult(correct, lesson.quiz.length);
   }
 
-  const answeredCount = Object.values(answers).filter((v) => v && v.trim()).length;
+  const answeredCount = Object.values(answers).filter(
+    (v) => v && v.trim()
+  ).length;
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-2 flex-wrap">
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-slate-600 dark:text-slate-300">
           أجب عن جميع الأسئلة ثم اضغط على زر التصحيح لمعرفة نتيجتك.
         </p>
         <Button
@@ -665,7 +784,9 @@ function QuizSection({
           if (q.type === "numeric") {
             const u = parseFloat(userAns);
             const c = parseFloat(correctAns);
-            isCorrect = !isNaN(u) && !isNaN(c) ? Math.abs(u - c) < 0.5 : userAns === correctAns;
+            isCorrect = !isNaN(u) && !isNaN(c)
+              ? Math.abs(u - c) < 0.5
+              : userAns === correctAns;
           } else {
             isCorrect = userAns === correctAns;
           }
@@ -677,16 +798,16 @@ function QuizSection({
             className={`border rounded-xl p-4 transition-colors ${
               submitted[q.id] && userAns
                 ? isCorrect
-                  ? "border-emerald-300 bg-emerald-50/50"
-                  : "border-rose-300 bg-rose-50/50"
-                : "border-slate-200 bg-slate-50/50"
+                  ? "border-emerald-300 dark:border-emerald-700 bg-emerald-50/50 dark:bg-emerald-950/20"
+                  : "border-rose-300 dark:border-rose-800 bg-rose-50/50 dark:bg-rose-950/20"
+                : "border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30"
             }`}
           >
             <div className="flex items-start gap-3 mb-3">
               <span className="w-7 h-7 rounded-full bg-violet-600 text-white text-xs font-bold flex items-center justify-center shrink-0">
                 {idx + 1}
               </span>
-              <p className="text-sm md:text-base text-slate-800 leading-relaxed flex-1">
+              <p className="text-sm md:text-base text-slate-800 dark:text-slate-100 leading-relaxed flex-1">
                 {q.question}
               </p>
             </div>
@@ -700,7 +821,7 @@ function QuizSection({
                   onChange={(e) => setAnswer(q.id, e.target.value)}
                   placeholder="اكتب القيمة العددية..."
                   disabled={submitted[q.id]}
-                  className="bg-white max-w-xs"
+                  className="bg-white dark:bg-slate-800 max-w-xs"
                 />
               </div>
             )}
@@ -723,12 +844,12 @@ function QuizSection({
                         htmlFor={`${q.id}-${opt}`}
                         className={`flex items-center gap-2 p-2.5 rounded-lg border cursor-pointer transition-colors ${
                           showCorrect
-                            ? "border-emerald-400 bg-emerald-100/60"
+                            ? "border-emerald-400 bg-emerald-100/60 dark:bg-emerald-950/40"
                             : showWrong
-                            ? "border-rose-400 bg-rose-100/60"
+                            ? "border-rose-400 bg-rose-100/60 dark:bg-rose-950/40"
                             : selected
-                            ? "border-violet-400 bg-violet-50"
-                            : "border-slate-200 bg-white hover:border-violet-300"
+                            ? "border-violet-400 bg-violet-50 dark:bg-violet-950/30"
+                            : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-violet-300 dark:hover:border-violet-700"
                         } ${submitted[q.id] ? "cursor-default" : ""}`}
                       >
                         <RadioGroupItem
@@ -736,12 +857,14 @@ function QuizSection({
                           value={opt}
                           disabled={submitted[q.id]}
                         />
-                        <span className="text-sm text-slate-700">{opt}</span>
+                        <span className="text-sm text-slate-700 dark:text-slate-200">
+                          {opt}
+                        </span>
                         {showCorrect && (
-                          <CheckCircle2 className="w-4 h-4 text-emerald-600 mr-auto" />
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 mr-auto" />
                         )}
                         {showWrong && (
-                          <XCircle className="w-4 h-4 text-rose-600 mr-auto" />
+                          <XCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 mr-auto" />
                         )}
                       </Label>
                     );
@@ -768,12 +891,12 @@ function QuizSection({
                         htmlFor={`${q.id}-${opt}`}
                         className={`flex-1 flex items-center justify-center gap-2 p-2.5 rounded-lg border cursor-pointer transition-colors ${
                           showCorrect
-                            ? "border-emerald-400 bg-emerald-100/60"
+                            ? "border-emerald-400 bg-emerald-100/60 dark:bg-emerald-950/40"
                             : showWrong
-                            ? "border-rose-400 bg-rose-100/60"
+                            ? "border-rose-400 bg-rose-100/60 dark:bg-rose-950/40"
                             : selected
-                            ? "border-violet-400 bg-violet-50"
-                            : "border-slate-200 bg-white hover:border-violet-300"
+                            ? "border-violet-400 bg-violet-50 dark:bg-violet-950/30"
+                            : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-violet-300 dark:hover:border-violet-700"
                         }`}
                       >
                         <RadioGroupItem
@@ -781,12 +904,14 @@ function QuizSection({
                           value={opt}
                           disabled={submitted[q.id]}
                         />
-                        <span className="text-sm font-medium text-slate-700">{opt}</span>
+                        <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                          {opt}
+                        </span>
                         {showCorrect && (
-                          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                         )}
                         {showWrong && (
-                          <XCircle className="w-4 h-4 text-rose-600" />
+                          <XCircle className="w-4 h-4 text-rose-600 dark:text-rose-400" />
                         )}
                       </Label>
                     );
@@ -800,7 +925,7 @@ function QuizSection({
                 variant="ghost"
                 size="sm"
                 onClick={() => toggleSolution(q.id)}
-                className="text-slate-600 hover:text-violet-700"
+                className="text-slate-600 dark:text-slate-300 hover:text-violet-700 dark:hover:text-violet-300"
               >
                 {showSolutions[q.id] ? (
                   <>
@@ -833,12 +958,14 @@ function QuizSection({
                 animate={{ opacity: 1, height: "auto" }}
                 className="pr-10 mt-2"
               >
-                <div className="bg-white/80 backdrop-blur-sm rounded-lg p-3 border border-violet-200">
-                  <div className="text-xs font-bold text-violet-700 mb-1">
+                <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-lg p-3 border border-violet-200 dark:border-violet-800">
+                  <div className="text-xs font-bold text-violet-700 dark:text-violet-300 mb-1">
                     الإجابة النموذجية:{" "}
-                    <span className="text-slate-900">{q.answer}</span>
+                    <span className="text-slate-900 dark:text-slate-100">
+                      {q.answer}
+                    </span>
                   </div>
-                  <p className="text-sm text-slate-700 leading-relaxed">
+                  <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
                     {q.workedSolution}
                   </p>
                 </div>
@@ -857,28 +984,41 @@ function CompletionCard({
   prevLessonId,
   nextLessonId,
   onNavigateLesson,
+  lessonTimeSpent,
 }: {
   isCompleted: boolean;
   onComplete: () => void;
   prevLessonId: string | null;
   nextLessonId: string | null;
   onNavigateLesson: (lessonId: string) => void;
+  lessonTimeSpent: number;
 }) {
   return (
-    <Card className="border-2 border-indigo-200 bg-gradient-to-l from-indigo-50 to-purple-50">
+    <Card className="border-2 border-indigo-200 dark:border-indigo-900 bg-gradient-to-l from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30">
       <CardContent className="p-6 space-y-4">
         <div className="text-center">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-tr from-indigo-600 to-purple-600 mb-3">
             <Trophy className="w-7 h-7 text-white" />
           </div>
-          <h3 className="text-lg font-bold text-slate-800 mb-1">
+          <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-1">
             {isCompleted ? "أحسنت! لقد أكملت هذا الدرس" : "هل أنهيت هذا الدرس؟"}
           </h3>
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-slate-600 dark:text-slate-300">
             {isCompleted
               ? "يمكنك المرور للدرس التالي أو إعادة مراجعة هذا الدرس."
               : "اضغط على زر الإكمال لتحديث شريط التقدم العام وإتمام الدرس."}
           </p>
+          {lessonTimeSpent > 0 && (
+            <div className="inline-flex items-center gap-1.5 mt-2 px-3 py-1 bg-white dark:bg-slate-800 rounded-full border border-indigo-200 dark:border-indigo-800 text-xs">
+              <Clock className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+              <span className="text-slate-700 dark:text-slate-200">
+                وقتك في هذا الدرس:{" "}
+                <span className="font-bold text-indigo-700 dark:text-indigo-300">
+                  {formatTime(lessonTimeSpent)}
+                </span>
+              </span>
+            </div>
+          )}
         </div>
 
         <div className="flex justify-center">
@@ -906,14 +1046,14 @@ function CompletionCard({
           </Button>
         </div>
 
-        <Separator />
+        <Separator className="bg-slate-200 dark:bg-slate-700" />
 
         <div className="flex flex-col sm:flex-row gap-2 justify-between">
           {prevLessonId ? (
             <Button
               variant="outline"
               onClick={() => onNavigateLesson(prevLessonId)}
-              className="flex-1 border-slate-300"
+              className="flex-1 border-slate-300 dark:border-slate-700"
             >
               <ArrowRight className="w-4 h-4 ml-2" />
               الدرس السابق
@@ -924,13 +1064,13 @@ function CompletionCard({
           {nextLessonId ? (
             <Button
               onClick={() => onNavigateLesson(nextLessonId)}
-              className="flex-1 bg-slate-800 hover:bg-slate-900"
+              className="flex-1 bg-slate-800 dark:bg-slate-700 hover:bg-slate-900 dark:hover:bg-slate-600"
             >
               <Undo2 className="w-4 h-4 ml-2 rotate-180" />
               الدرس التالي
             </Button>
           ) : (
-            <div className="flex-1 text-center self-center text-sm text-slate-500">
+            <div className="flex-1 text-center self-center text-sm text-slate-500 dark:text-slate-400">
               لقد أكملت آخر درس! 🎉
             </div>
           )}

@@ -95,7 +95,7 @@ export function WelcomeScreen({ onStart }: Props) {
               <div className="flex flex-wrap gap-2 justify-center mt-4">
                 <Badge variant="secondary" className="bg-indigo-50 text-indigo-700 border-indigo-200">
                   <BookOpen className="w-3 h-3 ml-1" />
-                  11 وحدات دراسية
+                  10 وحدات دراسية
                 </Badge>
                 <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200">
                   <Sparkles className="w-3 h-3 ml-1" />
