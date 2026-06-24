@@ -157,6 +157,17 @@
   .dark ::-webkit-scrollbar-thumb:hover {
     background: oklch(0.55 0.10 260);
   }
+
+  /* شريط تمرير أفقي أنيق للجوال - إخفاء في الأجهزة اللمسية إن وُجد */
+  @media (hover: none) and (pointer: coarse) {
+    /* الجوال: شريط رفيع جدًا */
+    .overflow-x-auto::-webkit-scrollbar {
+      height: 4px;
+    }
+    .overflow-x-auto::-webkit-scrollbar-thumb {
+      background: oklch(0.6 0.1 260 / 0.6);
+    }
+  }
 }
 
 /* تنسيق الطباعة للشهادة */
