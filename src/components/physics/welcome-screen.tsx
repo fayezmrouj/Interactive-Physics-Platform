@@ -343,7 +343,7 @@ export function WelcomeScreen({
               المعلم فايز مروج
             </div>
             <div className="text-white/60 text-xs">
-              تصميم وإعداد المعلم: فايز مروج
+              معد ومصمم المنصة
             </div>
           </div>
         </motion.div>
