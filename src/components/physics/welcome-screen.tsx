@@ -74,8 +74,8 @@ function TeacherLogo({ size = "md" }: { size?: "sm" | "md" | "lg" }) {
   );
 }
 
-// شارة اسم المعلم
-function TeacherCredit({ variant = "light" }: { variant?: "light" | "dark" }) {
+// شارة اسم المعلم - مستخدمة في الشهادة فقط
+export function TeacherCredit({ variant = "light" }: { variant?: "light" | "dark" }) {
   const colorClass =
     variant === "dark"
       ? "text-white/90 bg-white/10 backdrop-blur-sm border-white/20"
@@ -323,7 +323,7 @@ export function WelcomeScreen({
 
       {/* ============ الترويسة العلوية ============ */}
       <header className="relative z-20 px-4 md:px-8 py-4 md:py-5 flex items-center justify-between gap-3">
-        {/* شعار المعلم - يسار */}
+        {/* شعار المعلم + العبارة - يسار */}
         <motion.div
           initial={{ opacity: 0, x: -30 }}
           animate={{ opacity: 1, x: 0 }}
@@ -336,19 +336,18 @@ export function WelcomeScreen({
               المعلم فايز مروج
             </div>
             <div className="text-white/60 text-xs">
-              مُعِدّ ومصمّم المنصة
+              تصميم وإعداد المعلم: فايز مروج
             </div>
           </div>
         </motion.div>
 
-        {/* أدوات يمين */}
+        {/* أدوات يمين - زر الوضع الليلي فقط */}
         <motion.div
           initial={{ opacity: 0, x: 30 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6 }}
           className="flex items-center gap-2"
         >
-          <TeacherCredit variant="dark" />
           <ThemeToggleButton />
         </motion.div>
       </header>
@@ -533,14 +532,15 @@ export function WelcomeScreen({
       </div>
 
       {/* ============ التذييل ============ */}
-      <footer className="relative z-20 px-4 md:px-8 py-4 md:py-5 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-white/10">
-        <div className="flex items-center gap-2 text-white/70 text-xs md:text-sm">
+      <footer className="relative z-20 px-4 md:px-8 py-4 md:py-5 flex flex-col sm:flex-row items-center justify-center gap-2 border-t border-white/10">
+        <div className="flex items-center gap-2 text-white/70 text-xs md:text-sm flex-wrap justify-center">
           <Atom className="w-4 h-4 text-cyan-400" />
           <span>© 2026 منصة الفيزياء التفاعلية</span>
           <span className="hidden sm:inline">•</span>
           <span className="hidden sm:inline">جميع الحقوق محفوظة</span>
+          <span className="hidden sm:inline">•</span>
+          <span className="text-white/90 font-semibold">تصميم وإعداد المعلم: فايز مروج</span>
         </div>
-        <TeacherCredit variant="dark" />
       </footer>
 
       {/* Dialog كيف يعمل؟ */}
