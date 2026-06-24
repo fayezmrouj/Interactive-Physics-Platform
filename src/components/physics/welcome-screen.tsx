@@ -505,19 +505,43 @@ export function WelcomeScreen({
             </CardContent>
           </Card>
 
-          {/* معاينة سريعة للميزات */}
+          {/* معاينة سريعة للميزات - قابلة للنقر لعرض شرح */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
             className="mt-6 grid grid-cols-3 sm:grid-cols-6 gap-2"
           >
-            <FeaturePreview icon={<Calculator className="w-4 h-4" />} label="حاسبة" />
-            <FeaturePreview icon={<FlaskConical className="w-4 h-4" />} label="محاكاة" />
-            <FeaturePreview icon={<Search className="w-4 h-4" />} label="بحث" />
-            <FeaturePreview icon={<Dumbbell className="w-4 h-4" />} label="تدريب" />
-            <FeaturePreview icon={<Trophy className="w-4 h-4" />} label="إنجازات" />
-            <FeaturePreview icon={<Brain className="w-4 h-4" />} label="مراجعة" />
+            <FeaturePreview
+              icon={<Calculator className="w-4 h-4" />}
+              label="حاسبة"
+              description="حاسبة فيزيائية لـ12 قانونًا (السرعة، القوة، الشغل...) تحسب المجهول تلقائيًا مع شرح الخطوات."
+            />
+            <FeaturePreview
+              icon={<FlaskConical className="w-4 h-4" />}
+              label="محاكاة"
+              description="مختبر تفاعلي: سقوط حر، قانون نيوتن الثاني، انكسار الضوء، الموجات — جرّب الفيزياء حية!"
+            />
+            <FeaturePreview
+              icon={<Search className="w-4 h-4" />}
+              label="بحث"
+              description="بحث ذكي فوري في 24 درسًا + 89 مفهومًا + 75 قانونًا فيزيائيًا. اكتب أي شيء وستجد النتيجة."
+            />
+            <FeaturePreview
+              icon={<Dumbbell className="w-4 h-4" />}
+              label="تدريب"
+              description="50+ سؤال تدريب بمستويات سهل/متوسط/صعب، مع مؤقت اختياري ومراجعة شاملة في النهاية."
+            />
+            <FeaturePreview
+              icon={<Trophy className="w-4 h-4" />}
+              label="إنجازات"
+              description="19 إنجازًا وشارة لتحفيزك (أول درس، 100% كويز، سلسلة 7 أيام...) + نظام نقاط."
+            />
+            <FeaturePreview
+              icon={<Brain className="w-4 h-4" />}
+              label="مراجعة"
+              description="خوارزمية تذكير فاصل (Spaced Repetition) تُعيدك للأسئلة الصعبة على فترات متزايدة لإتقانها."
+            />
           </motion.div>
 
           {/* معاينة الوحدات */}
@@ -578,16 +602,60 @@ function StatCounter({
 function FeaturePreview({
   icon,
   label,
+  description,
+  onClick,
 }: {
   icon: React.ReactNode;
   label: string;
+  description: string;
+  onClick?: () => void;
 }) {
+  const [showInfo, setShowInfo] = useState(false);
+
   return (
-    <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-white/10 backdrop-blur-sm border border-white/10 hover:bg-white/15 transition-colors">
-      <div className="text-cyan-300">{icon}</div>
-      <span className="text-[10px] md:text-xs text-white/80 font-medium">
-        {label}
-      </span>
+    <div className="relative">
+      <button
+        onClick={() => {
+          if (onClick) {
+            onClick();
+          } else {
+            setShowInfo((s) => !s);
+          }
+        }}
+        className="w-full flex flex-col items-center gap-1 p-2 rounded-lg bg-white/10 backdrop-blur-sm border border-white/10 hover:bg-white/20 hover:border-cyan-400/40 transition-all cursor-pointer group"
+        title={description}
+      >
+        <div className="text-cyan-300 group-hover:scale-110 transition-transform">
+          {icon}
+        </div>
+        <span className="text-[10px] md:text-xs text-white/80 font-medium group-hover:text-white">
+          {label}
+        </span>
+      </button>
+
+      {/* بطاقة معلومات منبثقة */}
+      {showInfo && (
+        <motion.div
+          initial={{ opacity: 0, y: 5, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 z-30 w-44 p-3 rounded-lg bg-white dark:bg-slate-800 shadow-xl border border-slate-200 dark:border-slate-700"
+        >
+          <div className="text-xs font-bold text-slate-800 dark:text-slate-100 mb-1 flex items-center gap-1">
+            <span className="text-cyan-500">{icon}</span>
+            {label}
+          </div>
+          <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
+            {description}
+          </p>
+          <div className="text-[10px] text-amber-600 dark:text-amber-400 mt-2 font-medium flex items-center gap-1">
+            <Sparkles className="w-3 h-3" />
+            سجّل اسمك أولًا للاستفادة
+          </div>
+          {/* سهم البطاقة */}
+          <div className="absolute top-full left-1/2 -translate-x-1/2 w-2 h-2 bg-white dark:bg-slate-800 border-l border-b border-slate-200 dark:border-slate-700 rotate-[-45deg]" />
+        </motion.div>
+      )}
     </div>
   );
 }
