@@ -44,6 +44,7 @@ type Props = {
 
 // مكوّن شعار المعلم - يستخدم صورة حقيقية إذا وُجدت، وإلا placeholder
 function TeacherLogo({ size = "md" }: { size?: "sm" | "md" | "lg" }) {
+  const [imgSrc, setImgSrc] = useState<string>("/teacher-photo.png");
   const [imgError, setImgError] = useState(false);
   const sizeClass = {
     sm: "w-10 h-10 text-sm",
@@ -51,20 +52,26 @@ function TeacherLogo({ size = "md" }: { size?: "sm" | "md" | "lg" }) {
     lg: "w-20 h-20 text-xl",
   }[size];
 
-  // حاول تحميل الصورة من /teacher-photo.jpg
+  // حاول تحميل الصورة (PNG أولًا للشفافية، ثم JPG كـ fallback)
   if (!imgError) {
     return (
-      <div className={`${sizeClass} rounded-full overflow-hidden border-2 border-white/40 shadow-lg shrink-0`}>
+      <div className={`${sizeClass} rounded-full overflow-hidden border-2 border-white/40 shadow-lg shrink-0 bg-white/10`}>
         <img
-          src="/teacher-photo.jpg"
+          src={imgSrc}
           alt="المعلم فايز مروج"
           className="w-full h-full object-cover"
-          onError={() => setImgError(true)}
+          onError={() => {
+            if (imgSrc === "/teacher-photo.png") {
+              setImgSrc("/teacher-photo.jpg");
+            } else {
+              setImgError(true);
+            }
+          }}
         />
       </div>
     );
   }
-  // placeholder بأحرف "FM"
+  // placeholder بأحرف "ف.م"
   return (
     <div
       className={`${sizeClass} rounded-full bg-gradient-to-tr from-amber-500 via-orange-500 to-rose-500 flex items-center justify-center text-white font-bold shadow-lg border-2 border-white/40 shrink-0`}
