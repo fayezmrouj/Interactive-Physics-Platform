@@ -52,3 +52,11 @@ prompt
 server.log
 # Skills directory
 /skills/
+# Sandbox files
+.zscripts/
+dev.log
+Caddyfile
+db/
+mini-services/
+examples/
+extracted/
