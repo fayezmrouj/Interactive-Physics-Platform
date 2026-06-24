@@ -26,6 +26,8 @@ export type UserProfile = {
   id: string;
   name: string;
   createdAt: number;
+  // الصف المختار: "9" أو "10" أو "all" (الكل)
+  grade: "9" | "10" | "all";
   // حالة كل ملف
   completedLessons: string[];
   quizResults: Record<string, { correct: number; total: number }>;
@@ -62,10 +64,11 @@ export type ProgressState = {
   activeProfileId: string | null;
 };
 
-const createDefaultProfile = (id: string, name: string): UserProfile => ({
+const createDefaultProfile = (id: string, name: string, grade: "9" | "10" | "all" = "all"): UserProfile => ({
   id,
   name,
   createdAt: Date.now(),
+  grade,
   completedLessons: [],
   quizResults: {},
   lastVisited: null,
@@ -129,6 +132,17 @@ function readFromStorage(): ProgressState {
       return cachedState;
     }
     cachedState = { ...DEFAULT_STATE, ...parsed };
+    // Migration: ضمان وجود grade في كل profile قديم
+    let migrated = false;
+    for (const id of Object.keys(cachedState.profiles || {})) {
+      if (!cachedState.profiles[id].grade) {
+        cachedState.profiles[id].grade = "all";
+        migrated = true;
+      }
+    }
+    if (migrated) {
+      writeToStorage(cachedState);
+    }
     return cachedState;
   } catch {
     cachedState = DEFAULT_STATE;
@@ -223,15 +237,18 @@ export function useProgress() {
   const activeProfile = getActiveProfile(state);
 
   // === إدارة المستخدمين ===
-  const setStudentName = useCallback((name: string) => {
-    const cur = readFromStorage();
-    const id = `user-${Date.now()}`;
-    const profile = createDefaultProfile(id, name);
-    writeToStorage({
-      profiles: { ...cur.profiles, [id]: profile },
-      activeProfileId: id,
-    });
-  }, []);
+  const setStudentName = useCallback(
+    (name: string, grade: "9" | "10" | "all" = "all") => {
+      const cur = readFromStorage();
+      const id = `user-${Date.now()}`;
+      const profile = createDefaultProfile(id, name, grade);
+      writeToStorage({
+        profiles: { ...cur.profiles, [id]: profile },
+        activeProfileId: id,
+      });
+    },
+    []
+  );
 
   const switchProfile = useCallback((profileId: string) => {
     const cur = readFromStorage();
@@ -239,15 +256,27 @@ export function useProgress() {
     writeToStorage({ ...cur, activeProfileId: profileId });
   }, []);
 
-  const addProfile = useCallback((name: string) => {
-    const cur = readFromStorage();
-    const id = `user-${Date.now()}`;
-    const profile = createDefaultProfile(id, name);
-    writeToStorage({
-      profiles: { ...cur.profiles, [id]: profile },
-      activeProfileId: id,
-    });
-  }, []);
+  const addProfile = useCallback(
+    (name: string, grade: "9" | "10" | "all" = "all") => {
+      const cur = readFromStorage();
+      const id = `user-${Date.now()}`;
+      const profile = createDefaultProfile(id, name, grade);
+      writeToStorage({
+        profiles: { ...cur.profiles, [id]: profile },
+        activeProfileId: id,
+      });
+    },
+    []
+  );
+
+  const setProfileGrade = useCallback(
+    (grade: "9" | "10" | "all") => {
+      const cur = readFromStorage();
+      const next = updateActiveProfile(cur, (p) => ({ ...p, grade }));
+      writeToStorage(next);
+    },
+    []
+  );
 
   const deleteProfile = useCallback((profileId: string) => {
     const cur = readFromStorage();
@@ -448,9 +477,11 @@ export function useProgress() {
   const resetProgress = useCallback(() => {
     const cur = readFromStorage();
     if (!cur.activeProfileId) return;
+    const oldProfile = cur.profiles[cur.activeProfileId];
     const newProfile = createDefaultProfile(
       cur.activeProfileId,
-      cur.profiles[cur.activeProfileId].name
+      oldProfile.name,
+      oldProfile.grade || "all"
     );
     writeToStorage({
       ...cur,
@@ -505,6 +536,7 @@ export function useProgress() {
     switchProfile,
     addProfile,
     deleteProfile,
+    setProfileGrade,
     // الدروس
     completeLesson,
     uncompleteLesson,

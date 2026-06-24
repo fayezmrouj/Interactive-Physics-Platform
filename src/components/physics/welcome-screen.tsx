@@ -1,7 +1,7 @@
 "use client";
 
-import { motion, useInView } from "framer-motion";
-import { useState, useRef, useEffect } from "react";
+import { motion, useInView, AnimatePresence } from "framer-motion";
+import { useState, useRef, useEffect, useSyncExternalStore } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -20,13 +20,26 @@ import {
   Brain,
   Search,
   Dumbbell,
+  HelpCircle,
+  Quote,
+  Moon,
+  Sun,
+  CheckCircle2,
 } from "lucide-react";
+import { useTheme } from "next-themes";
+import { getDailyQuote } from "@/lib/physics/quotes";
+import { getTodayKey } from "@/lib/physics/practice-questions";
+import { HowItWorks } from "./how-it-works";
+import { UnitsPreview } from "./units-preview";
+import { DailyChallengeCountdown } from "./daily-countdown";
 
 type Props = {
-  onStart: (name: string) => void;
+  onStart: (name: string, grade: "9" | "10" | "all") => void;
   hasProgress?: boolean;
   studentName?: string;
   onContinue?: () => void;
+  dailyChallengeCompletedToday?: boolean;
+  dailyStreak?: number;
 };
 
 // مكوّن شعار المعلم - يستخدم صورة حقيقية إذا وُجدت، وإلا placeholder
@@ -77,6 +90,57 @@ function TeacherCredit({ variant = "light" }: { variant?: "light" | "dark" }) {
   );
 }
 
+// زر تبديل الوضع الليلي/النهاري
+function ThemeToggleButton() {
+  const { theme, setTheme } = useTheme();
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
+
+  if (!mounted) {
+    return (
+      <div className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-sm border border-white/20" />
+    );
+  }
+
+  const isDark = theme === "dark";
+
+  return (
+    <button
+      onClick={() => setTheme(isDark ? "light" : "dark")}
+      className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 flex items-center justify-center text-white transition-colors"
+      title={isDark ? "التبديل للوضع النهاري" : "التبديل للوضع الليلي"}
+      aria-label={isDark ? "التبديل للوضع النهاري" : "التبديل للوضع الليلي"}
+    >
+      <AnimatePresence mode="wait">
+        {isDark ? (
+          <motion.div
+            key="sun"
+            initial={{ rotate: -90, opacity: 0 }}
+            animate={{ rotate: 0, opacity: 1 }}
+            exit={{ rotate: 90, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <Sun className="w-5 h-5 text-amber-300" />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="moon"
+            initial={{ rotate: 90, opacity: 0 }}
+            animate={{ rotate: 0, opacity: 1 }}
+            exit={{ rotate: -90, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <Moon className="w-5 h-5 text-white" />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </button>
+  );
+}
+
 // عداد متحرك
 function AnimatedCounter({
   value,
@@ -117,9 +181,95 @@ function AnimatedCounter({
   );
 }
 
-export function WelcomeScreen({ onStart, hasProgress, studentName, onContinue }: Props) {
+// مكون الاقتباس اليومي
+function DailyQuoteCard() {
+  const quote = getDailyQuote();
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.3 }}
+      className="bg-gradient-to-l from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30 border border-indigo-200 dark:border-indigo-800 rounded-xl p-3 md:p-4 mb-4"
+    >
+      <div className="flex items-start gap-3">
+        <div className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center shrink-0">
+          <Quote className="w-4 h-4" />
+        </div>
+        <div className="flex-1">
+          <div className="text-xs text-indigo-600 dark:text-indigo-400 font-bold mb-1 flex items-center gap-1">
+            <Sparkles className="w-3 h-3" />
+            اقتباس اليوم
+          </div>
+          <p className="text-sm md:text-base text-slate-700 dark:text-slate-200 italic leading-relaxed">
+            «{quote.text}»
+          </p>
+          <div className="text-xs text-slate-600 dark:text-slate-400 mt-1.5 font-semibold">
+            — {quote.author}
+            {quote.context && (
+              <span className="text-slate-500 dark:text-slate-500 font-normal">
+                {" "}
+                ({quote.context})
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// مكون اختيار الصف
+function GradeSelector({
+  value,
+  onChange,
+}: {
+  value: "9" | "10" | "all";
+  onChange: (v: "9" | "10" | "all") => void;
+}) {
+  const options: Array<{ id: "9" | "10" | "all"; label: string; emoji: string }> = [
+    { id: "9", label: "الصف التاسع", emoji: "📘" },
+    { id: "10", label: "الصف العاشر", emoji: "📕" },
+    { id: "all", label: "كلا الصفين", emoji: "📚" },
+  ];
+
+  return (
+    <div className="space-y-2">
+      <Label className="text-sm font-semibold text-slate-700">
+        اختر صفك الدراسي
+      </Label>
+      <div className="grid grid-cols-3 gap-2">
+        {options.map((opt) => (
+          <button
+            key={opt.id}
+            type="button"
+            onClick={() => onChange(opt.id)}
+            className={`p-2.5 rounded-lg border text-sm font-medium transition-all ${
+              value === opt.id
+                ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-950/30 text-indigo-700 dark:text-indigo-300 ring-2 ring-indigo-200 dark:ring-indigo-800"
+                : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:border-indigo-300"
+            }`}
+          >
+            <div className="text-lg mb-0.5">{opt.emoji}</div>
+            <div className="text-xs leading-tight">{opt.label}</div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function WelcomeScreen({
+  onStart,
+  hasProgress,
+  studentName,
+  onContinue,
+  dailyChallengeCompletedToday = false,
+  dailyStreak = 0,
+}: Props) {
   const [name, setName] = useState("");
+  const [grade, setGrade] = useState<"9" | "10" | "all">("all");
   const [error, setError] = useState("");
+  const [showHowItWorks, setShowHowItWorks] = useState(false);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -129,7 +279,7 @@ export function WelcomeScreen({ onStart, hasProgress, studentName, onContinue }:
       return;
     }
     setError("");
-    onStart(trimmed);
+    onStart(trimmed, grade);
   }
 
   return (
@@ -191,13 +341,15 @@ export function WelcomeScreen({ onStart, hasProgress, studentName, onContinue }:
           </div>
         </motion.div>
 
-        {/* عبارة التصميم - يمين */}
+        {/* أدوات يمين */}
         <motion.div
           initial={{ opacity: 0, x: 30 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6 }}
+          className="flex items-center gap-2"
         >
           <TeacherCredit variant="dark" />
+          <ThemeToggleButton />
         </motion.div>
       </header>
 
@@ -209,6 +361,9 @@ export function WelcomeScreen({ onStart, hasProgress, studentName, onContinue }:
           transition={{ duration: 0.6 }}
           className="w-full max-w-2xl"
         >
+          {/* اقتباس اليوم */}
+          <DailyQuoteCard />
+
           <Card className="bg-white/95 backdrop-blur-xl shadow-2xl border-white/40">
             <CardHeader className="text-center pb-2 pt-8 md:pt-10">
               <motion.div
@@ -271,9 +426,17 @@ export function WelcomeScreen({ onStart, hasProgress, studentName, onContinue }:
             </CardHeader>
 
             <CardContent className="p-6 md:p-8">
+              {/* عدّاد التحدي اليومي */}
+              <div className="mb-4">
+                <DailyChallengeCountdown
+                  completedToday={dailyChallengeCompletedToday}
+                  streak={dailyStreak}
+                />
+              </div>
+
               {/* زر متابعة التعلم إن وُجد تقدم سابق */}
               {hasProgress && studentName && onContinue ? (
-                <div className="space-y-3">
+                <div className="space-y-3 mb-4">
                   <Button
                     onClick={onContinue}
                     size="lg"
@@ -282,14 +445,17 @@ export function WelcomeScreen({ onStart, hasProgress, studentName, onContinue }:
                     <PlayCircle className="w-5 h-5 mr-2" />
                     <span>متابعة كـ {studentName}</span>
                   </Button>
-                  <div className="text-center text-xs text-slate-500">أو</div>
                   <div className="text-center text-xs text-slate-500">
-                    سجّل اسمًا جديدًا بالأسفل
+                    أو سجّل اسمًا جديدًا بالأسفل
                   </div>
                 </div>
               ) : null}
 
               <form onSubmit={handleSubmit} className="space-y-4">
+                {/* اختيار الصف */}
+                <GradeSelector value={grade} onChange={setGrade} />
+
+                {/* إدخال الاسم */}
                 <div className="space-y-2">
                   <Label htmlFor="student-name" className="text-base font-semibold text-slate-700">
                     ما اسمك أيها الفيزيائي؟
@@ -307,14 +473,27 @@ export function WelcomeScreen({ onStart, hasProgress, studentName, onContinue }:
                   {error && <p className="text-sm text-rose-600">{error}</p>}
                 </div>
 
-                <Button
-                  type="submit"
-                  size="lg"
-                  className="w-full h-12 md:h-14 text-base md:text-lg font-bold bg-gradient-to-l from-indigo-600 via-blue-600 to-purple-600 hover:from-indigo-700 hover:via-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all group"
-                >
-                  <span>ابدأ رحلة الاستكشاف</span>
-                  <ChevronLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" />
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    type="submit"
+                    size="lg"
+                    className="flex-1 h-12 md:h-14 text-base md:text-lg font-bold bg-gradient-to-l from-indigo-600 via-blue-600 to-purple-600 hover:from-indigo-700 hover:via-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all group"
+                  >
+                    <span>ابدأ رحلة الاستكشاف</span>
+                    <ChevronLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="lg"
+                    onClick={() => setShowHowItWorks(true)}
+                    className="h-12 md:h-14 px-4 border-indigo-300 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/30"
+                    title="شرح طريقة استخدام المنصة"
+                  >
+                    <HelpCircle className="w-5 h-5" />
+                    <span className="hidden md:inline mr-1">كيف يعمل؟</span>
+                  </Button>
+                </div>
               </form>
 
               <p className="text-xs text-slate-500 text-center mt-4 leading-relaxed">
@@ -338,6 +517,18 @@ export function WelcomeScreen({ onStart, hasProgress, studentName, onContinue }:
             <FeaturePreview icon={<Trophy className="w-4 h-4" />} label="إنجازات" />
             <FeaturePreview icon={<Brain className="w-4 h-4" />} label="مراجعة" />
           </motion.div>
+
+          {/* معاينة الوحدات */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.5 }}
+            className="mt-6"
+          >
+            <Card className="bg-white/10 backdrop-blur-sm border-white/20 p-4">
+              <UnitsPreview highlightGrade={grade} />
+            </Card>
+          </motion.div>
         </motion.div>
       </div>
 
@@ -351,6 +542,9 @@ export function WelcomeScreen({ onStart, hasProgress, studentName, onContinue }:
         </div>
         <TeacherCredit variant="dark" />
       </footer>
+
+      {/* Dialog كيف يعمل؟ */}
+      <HowItWorks open={showHowItWorks} onOpenChange={setShowHowItWorks} />
     </div>
   );
 }

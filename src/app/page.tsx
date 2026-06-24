@@ -109,8 +109,8 @@ export default function Home() {
     return () => window.removeEventListener("physics-achievements-unlocked", handler);
   }, []);
 
-  function handleStart(name: string) {
-    setStudentName(name);
+  function handleStart(name: string, grade: "9" | "10" | "all") {
+    setStudentName(name, grade);
     setView({ type: "dashboard" });
     toast.success(`أهلاً بك ${name}! ابدأ رحلتك في عالم الفيزياء 🚀`);
   }
@@ -203,7 +203,17 @@ export default function Home() {
   const existingProfiles = Object.values(state.profiles);
   const lastProfile = existingProfiles[0];
   const hasExistingProfile =
-    existingProfiles.length > 0 && !!lastProfile?.studentName;
+    existingProfiles.length > 0 && !!lastProfile?.name;
+
+  // بيانات التحدي اليومي من آخر بروفايل نشط (إن وُجد)
+  const todayKey = (() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  })();
+  const lastProfileDailyCompleted = lastProfile
+    ? lastProfile.dailyChallengeCompletedDates.includes(todayKey)
+    : false;
+  const lastProfileStreak = lastProfile?.dailyStreak || 0;
 
   if (!activeProfile) {
     return (
@@ -217,6 +227,8 @@ export default function Home() {
             setView({ type: "dashboard" });
           }
         }}
+        dailyChallengeCompletedToday={lastProfileDailyCompleted}
+        dailyStreak={lastProfileStreak}
       />
     );
   }
