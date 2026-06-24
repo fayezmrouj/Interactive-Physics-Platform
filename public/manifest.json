@@ -1,0 +1,37 @@
+{
+  "name": "منصة الفيزياء التفاعلية",
+  "short_name": "الفيزياء",
+  "description": "منصة تعليمية تفاعلية لفيزياء الصفين التاسع والعاشر",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f172a",
+  "theme_color": "#4f46e5",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education", "science"],
+  "shortcuts": [
+    {
+      "name": "لوحة التحكم",
+      "url": "/?view=dashboard"
+    },
+    {
+      "name": "البحث",
+      "url": "/?action=search"
+    }
+  ]
+}

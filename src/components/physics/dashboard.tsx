@@ -4,8 +4,6 @@ import { motion } from "framer-motion";
 import {
   Card,
   CardContent,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -32,6 +30,7 @@ import {
   ListChecks,
   Award,
   Hourglass,
+  Zap,
 } from "lucide-react";
 import { useState } from "react";
 import {
@@ -41,12 +40,16 @@ import {
   type Lesson,
   type Unit,
 } from "@/lib/physics";
-import type { ProgressState } from "@/lib/use-progress";
+import type { UserProfile } from "@/lib/use-progress";
 import { formatTime } from "@/lib/use-progress";
 import { ThemeToggle } from "@/components/theme-toggle";
+import {
+  computeAchievementPoints,
+  ACHIEVEMENTS,
+} from "@/lib/physics/achievements";
 
 type Props = {
-  progress: ProgressState;
+  profile: UserProfile;
   onOpenLesson: (lessonId: string) => void;
   onReset: () => void;
   onLogout: () => void;
@@ -54,33 +57,30 @@ type Props = {
 };
 
 export function Dashboard({
-  progress,
+  profile,
   onOpenLesson,
   onReset,
   onLogout,
   onShowCertificate,
 }: Props) {
   const totalLessons = CURRICULUM_STATS.totalLessons;
-  const completedCount = progress.completedLessons.length;
+  const completedCount = profile.completedLessons.length;
   const completionPct =
     totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0;
 
   // إحصائيات الكويز
-  const quizCount = Object.keys(progress.quizResults).length;
-  const totalCorrect = Object.values(progress.quizResults).reduce(
+  const totalCorrect = Object.values(profile.quizResults).reduce(
     (acc, r) => acc + r.correct,
     0
   );
-  const totalQuizQ = Object.values(progress.quizResults).reduce(
+  const totalQuizQ = Object.values(profile.quizResults).reduce(
     (acc, r) => acc + r.total,
     0
   );
-  const quizPct =
-    totalQuizQ > 0 ? Math.round((totalCorrect / totalQuizQ) * 100) : 0;
 
   // عدد القوانين في الدروس المكتملة
   const completedLessonsData = ALL_UNITS.flatMap((u) => u.lessons).filter((l) =>
-    progress.completedLessons.includes(l.id)
+    profile.completedLessons.includes(l.id)
   );
   const lawsStudied = completedLessonsData.reduce(
     (acc, l) => acc + l.formulas.length,
@@ -93,7 +93,18 @@ export function Dashboard({
 
   // إمكانية الحصول على شهادة (>= 70% إكمال)
   const eligibleForCertificate = completionPct >= 70;
-  const certificateIssued = !!progress.certificateIssuedAt;
+  const certificateIssued = !!profile.certificateIssuedAt;
+
+  // إنجازات
+  const unlockedAch = profile.unlockedAchievements.length;
+  const totalAch = ACHIEVEMENTS.length;
+  const totalPoints = computeAchievementPoints(profile.unlockedAchievements);
+
+  // عدد المراجعات المستحقة
+  const now = Date.now();
+  const dueReviews = Object.values(profile.spacedRepetition).filter(
+    (it) => it.nextReviewAt <= now
+  ).length;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 transition-colors">
@@ -111,23 +122,23 @@ export function Dashboard({
               <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400 truncate">
                 أهلًا بك يا{" "}
                 <span className="font-semibold text-indigo-700 dark:text-indigo-400">
-                  {progress.studentName}
+                  {profile.name}
                 </span>
               </p>
             </div>
           </div>
           <div className="flex items-center gap-1.5">
             <ThemeToggle />
-            {eligibleForCertificate && (
-              <Button
-                size="sm"
-                onClick={onShowCertificate}
-                className="hidden sm:inline-flex bg-gradient-to-l from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white"
-              >
-                <Award className="w-4 h-4 ml-1" />
-                {certificateIssued ? "عرض شهادتك" : "احصل على شهادتك"}
-              </Button>
-            )}
+            <Button
+              size="sm"
+              onClick={onShowCertificate}
+              className="hidden sm:inline-flex bg-gradient-to-l from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white"
+              disabled={!eligibleForCertificate}
+              title={!eligibleForCertificate ? "أكمل 70% من المنهج" : ""}
+            >
+              <Award className="w-4 h-4 ml-1" />
+              {certificateIssued ? "عرض شهادتك" : "احصل على شهادتك"}
+            </Button>
             <Button
               variant="ghost"
               size="sm"
@@ -161,10 +172,14 @@ export function Dashboard({
             <CardContent className="p-6 md:p-8">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
                 <div>
-                  <div className="flex items-center gap-2 mb-2">
+                  <div className="flex items-center gap-2 mb-2 flex-wrap">
                     <Trophy className="w-5 h-5 text-amber-300" />
                     <span className="text-amber-200 text-sm font-semibold">
                       تقدمك في المنهج
+                    </span>
+                    <span className="text-amber-200 text-xs bg-white/15 px-2 py-0.5 rounded-full flex items-center gap-1">
+                      <Flame className="w-3 h-3" />
+                      {profile.dailyStreak} يوم متتالي
                     </span>
                   </div>
                   <h2 className="text-2xl md:text-3xl font-bold">
@@ -200,11 +215,6 @@ export function Dashboard({
                   value={`${completedCount}`}
                 />
                 <StatPill
-                  icon={<Flame className="w-4 h-4" />}
-                  label="قوانين درستها"
-                  value={`${lawsStudied}`}
-                />
-                <StatPill
                   icon={<Target className="w-4 h-4" />}
                   label="أمثلة محلولة"
                   value={`${examplesSolved}`}
@@ -214,14 +224,19 @@ export function Dashboard({
                   label="أسئلة كويز"
                   value={`${totalCorrect}/${totalQuizQ}`}
                 />
+                <StatPill
+                  icon={<Trophy className="w-4 h-4" />}
+                  label="نقاط الإنجازات"
+                  value={`${totalPoints}`}
+                />
               </div>
             </CardContent>
           </Card>
         </motion.div>
 
-        {/* بطاقات الميزات الجديدة: تتبع الوقت + الشهادة */}
-        <div className="grid md:grid-cols-2 gap-4">
-          {/* تتبع الوقت */}
+        {/* بطاقات الميزات: وقت + شهادة + إنجازات + مراجعة */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* وقت الدراسة */}
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
@@ -234,37 +249,31 @@ export function Dashboard({
                     <Hourglass className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-slate-800 dark:text-slate-100">
-                      وقت الدراسة الإجمالي
+                    <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm">
+                      وقت الدراسة
                     </h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                      يُسجَّل تلقائيًا أثناء تصفّحك للدروس
-                    </p>
                   </div>
                 </div>
-                <div className="text-3xl font-extrabold bg-gradient-to-l from-indigo-600 to-purple-600 bg-clip-text text-transparent tabular-nums">
-                  {formatTime(progress.totalTimeSeconds)}
+                <div className="text-2xl font-extrabold bg-gradient-to-l from-indigo-600 to-purple-600 bg-clip-text text-transparent tabular-nums">
+                  {formatTime(profile.totalTimeSeconds)}
                 </div>
-                <div className="flex items-center gap-2 mt-3 text-xs text-slate-500 dark:text-slate-400">
+                <div className="flex items-center gap-2 mt-2 text-xs text-slate-500 dark:text-slate-400">
                   <Clock className="w-3.5 h-3.5" />
                   <span>
-                    متوسط{" "}
-                    {progress.completedLessons.length > 0
-                      ? formatTime(
+                    {profile.completedLessons.length > 0
+                      ? `متوسط ${formatTime(
                           Math.round(
-                            progress.totalTimeSeconds /
-                              progress.completedLessons.length
+                            profile.totalTimeSeconds / profile.completedLessons.length
                           )
-                        )
-                      : "0 ث"}{" "}
-                    لكل درس مكتمل
+                        )} لكل درس`
+                      : "ابدأ أول درس"}
                   </span>
                 </div>
               </CardContent>
             </Card>
           </motion.div>
 
-          {/* شهادة الإتمام */}
+          {/* شهادة */}
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
@@ -289,37 +298,29 @@ export function Dashboard({
                     <Award className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-slate-800 dark:text-slate-100">
+                    <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm">
                       {certificateIssued
                         ? "شهادتك جاهزة!"
                         : eligibleForCertificate
-                        ? "أنت مؤهّل للشهادة!"
+                        ? "مؤهّل للشهادة!"
                         : "شهادة الإتمام"}
                     </h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                      {eligibleForCertificate
-                        ? `أكملت ${completionPct}% من المنهج`
-                        : `أكمل ${Math.max(0, 70 - completionPct)}% إضافي للوصول للشهادة (الحد الأدنى 70%)`}
-                    </p>
                   </div>
                 </div>
-
                 <div className="flex-1 flex items-center justify-center">
                   {eligibleForCertificate ? (
                     <Button
                       onClick={onShowCertificate}
+                      size="sm"
                       className="w-full bg-gradient-to-l from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white shadow-md"
                     >
-                      <Award className="w-5 h-5 ml-2" />
-                      {certificateIssued ? "عرض الشهادة" : "إصدار الشهادة"}
+                      <Award className="w-4 h-4 ml-1" />
+                      {certificateIssued ? "عرض" : "إصدار"}
                     </Button>
                   ) : (
                     <div className="w-full">
-                      <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
-                        <span>التقدم نحو 70%</span>
-                        <span className="font-bold tabular-nums">
-                          {Math.min(completionPct, 70)}%
-                        </span>
+                      <div className="text-xs text-slate-500 mb-1 text-center">
+                        أكمل {Math.max(0, 70 - completionPct)}% إضافي
                       </div>
                       <Progress value={Math.min(completionPct, 70)} className="h-2" />
                     </div>
@@ -328,11 +329,67 @@ export function Dashboard({
               </CardContent>
             </Card>
           </motion.div>
+
+          {/* إنجازات */}
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.2 }}
+          >
+            <Card className="border-emerald-200 dark:border-emerald-900 bg-white dark:bg-slate-900 shadow-sm h-full">
+              <CardContent className="p-5">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 flex items-center justify-center">
+                    <Trophy className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm">
+                      الإنجازات
+                    </h3>
+                  </div>
+                </div>
+                <div className="text-2xl font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">
+                  {unlockedAch}/{totalAch}
+                </div>
+                <div className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+                  {totalPoints} نقطة • {unlockedAch > 0 ? "أحسنت!" : "ابدأ لفتح أول إنجاز"}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* مراجعة ذكية */}
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.25 }}
+          >
+            <Card className={`shadow-sm h-full ${dueReviews > 0 ? "border-rose-300 dark:border-rose-800 bg-rose-50/30 dark:bg-rose-950/20" : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900"}`}>
+              <CardContent className="p-5">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${dueReviews > 0 ? "bg-rose-100 dark:bg-rose-900/50 text-rose-700 dark:text-rose-300" : "bg-slate-100 dark:bg-slate-800 text-slate-500"}`}>
+                    <Zap className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm">
+                      مراجعة مستحقة
+                    </h3>
+                  </div>
+                </div>
+                <div className="text-2xl font-extrabold text-rose-700 dark:text-rose-400 tabular-nums">
+                  {dueReviews}
+                </div>
+                <div className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+                  {dueReviews > 0 ? "راجع من قائمة الميزات" : "لا مراجعات الآن"}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
         </div>
 
         {/* رسالة استئناف التقدم */}
-        {progress.lastVisited &&
-          !progress.completedLessons.includes(progress.lastVisited) && (
+        {profile.lastVisited &&
+          !profile.completedLessons.includes(profile.lastVisited) && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -348,7 +405,7 @@ export function Dashboard({
                   </div>
                   <Button
                     size="sm"
-                    onClick={() => onOpenLesson(progress.lastVisited!)}
+                    onClick={() => onOpenLesson(profile.lastVisited!)}
                     className="bg-amber-600 hover:bg-amber-700"
                   >
                     متابعة
@@ -380,7 +437,7 @@ export function Dashboard({
                 <UnitCard
                   key={unit.id}
                   unit={unit}
-                  progress={progress}
+                  profile={profile}
                   onOpenLesson={onOpenLesson}
                 />
               ))}
@@ -389,8 +446,7 @@ export function Dashboard({
         </div>
 
         <footer className="text-center py-6 text-xs text-slate-400 dark:text-slate-500">
-          منصة الفيزياء التفاعلية • مبنية على كتب الفيزياء الرسمية للصفين التاسع
-          والعاشر
+          منصة الفيزياء التفاعلية • مبنية على كتب الفيزياء الرسمية للصفين التاسع والعاشر • {CURRICULUM_STATS.totalUnits} وحدات • {totalLessons} درسًا
         </footer>
       </main>
     </div>
@@ -419,16 +475,16 @@ function StatPill({
 
 function UnitCard({
   unit,
-  progress,
+  profile,
   onOpenLesson,
 }: {
   unit: Unit;
-  progress: ProgressState;
+  profile: UserProfile;
   onOpenLesson: (lessonId: string) => void;
 }) {
   const [open, setOpen] = useState(false);
   const lessonsCompleted = unit.lessons.filter((l) =>
-    progress.completedLessons.includes(l.id)
+    profile.completedLessons.includes(l.id)
   ).length;
   const totalLessons = unit.lessons.length;
   const unitPct =
@@ -515,9 +571,10 @@ function UnitCard({
                     key={lesson.id}
                     lesson={lesson}
                     index={idx}
-                    isCompleted={progress.completedLessons.includes(lesson.id)}
-                    quizResult={progress.quizResults[lesson.id]}
-                    timeSpent={progress.lessonTimeSeconds[lesson.id] || 0}
+                    isCompleted={profile.completedLessons.includes(lesson.id)}
+                    quizResult={profile.quizResults[lesson.id]}
+                    timeSpent={profile.lessonTimeSeconds[lesson.id] || 0}
+                    hasNote={!!profile.notebook[lesson.id]}
                     onOpen={() => onOpenLesson(lesson.id)}
                   />
                 ))}
@@ -536,6 +593,7 @@ function LessonRow({
   isCompleted,
   quizResult,
   timeSpent,
+  hasNote,
   onOpen,
 }: {
   lesson: Lesson;
@@ -543,6 +601,7 @@ function LessonRow({
   isCompleted: boolean;
   quizResult?: { correct: number; total: number };
   timeSpent: number;
+  hasNote: boolean;
   onOpen: () => void;
 }) {
   return (
@@ -587,6 +646,14 @@ function LessonRow({
               >
                 <Clock className="w-2.5 h-2.5" />
                 {formatTime(timeSpent)}
+              </Badge>
+            )}
+            {hasNote && (
+              <Badge
+                variant="outline"
+                className="text-[10px] h-5 gap-0.5 border-teal-200 dark:border-teal-800 text-teal-700 dark:text-teal-400 bg-teal-50/50 dark:bg-teal-950/30"
+              >
+                📝
               </Badge>
             )}
             {quizResult && (

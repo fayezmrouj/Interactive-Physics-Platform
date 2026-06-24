@@ -1,13 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { WelcomeScreen } from "@/components/physics/welcome-screen";
 import { Dashboard } from "@/components/physics/dashboard";
 import { LessonView } from "@/components/physics/lesson-view";
 import { Certificate } from "@/components/physics/certificate";
+import { FeaturesDrawer } from "@/components/physics/features-drawer";
 import { useProgress, useIsMounted } from "@/lib/use-progress";
 import { CURRICULUM_STATS } from "@/lib/physics";
+import { ACHIEVEMENTS } from "@/lib/physics/achievements";
 import { toast } from "sonner";
+import { useTheme } from "next-themes";
 
 type View =
   | { type: "dashboard" }
@@ -16,17 +19,44 @@ type View =
 export default function Home() {
   const {
     state,
+    activeProfile,
     setStudentName,
     completeLesson,
     setQuizResult,
     setLastVisited,
+    addLessonTime,
     resetProgress,
     logout,
     issueCertificateIfEligible,
+    setNotebookEntry,
+    completeDailyChallenge,
+    recordPracticeAnswer,
+    unlockThemeAchievement,
+    switchProfile,
+    addProfile,
+    deleteProfile,
+    exportState,
+    importState,
   } = useProgress();
   const isMounted = useIsMounted();
+  const { theme } = useTheme();
   const [view, setView] = useState<View>({ type: "dashboard" });
   const [showCertificate, setShowCertificate] = useState(false);
+
+  // تتبع الوضع اللوني للإنجازات - تجنّب الحلقة اللانهائية بالتحقق من التغيير
+  const lastThemeRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!isMounted || !activeProfile) return;
+    if (!theme) return;
+    const mode = theme === "dark" ? "dark" : "light";
+    if (lastThemeRef.current === mode) return;
+    if (activeProfile.lastThemeMode === mode) {
+      lastThemeRef.current = mode;
+      return;
+    }
+    lastThemeRef.current = mode;
+    unlockThemeAchievement(mode);
+  }, [theme, isMounted, activeProfile, unlockThemeAchievement]);
 
   // التمرير لأعلى عند تغيير العرض
   useEffect(() => {
@@ -35,13 +65,11 @@ export default function Home() {
     }
   }, [view]);
 
-  // عندما يكمل الطالب كل الدروس لأول مرة، نُصدر الشهادة تلقائيًا ونعرض إشعارًا
-  // (نستخدم toast مباشرةً من داخل الـ effect بلا setState غير مشروط - setState
-  // يحدث فقط في فرع نادر فلا يتسبب في cascade)
+  // عندما يكمل الطالب كل الدروس لأول مرة، نُصدر الشهادة تلقائيًا
   useEffect(() => {
-    if (!isMounted || !state.studentName) return;
-    if (state.certificateIssuedAt) return; // أصدرت بالفعل
-    if (state.completedLessons.length < CURRICULUM_STATS.totalLessons) return;
+    if (!isMounted || !activeProfile) return;
+    if (activeProfile.certificateIssuedAt) return;
+    if (activeProfile.completedLessons.length < CURRICULUM_STATS.totalLessons) return;
 
     const result = issueCertificateIfEligible(CURRICULUM_STATS.totalLessons);
     if (result.issued) {
@@ -49,17 +77,36 @@ export default function Home() {
         "🎉 مبروك! لقد أكملت المنهج بنسبة 100% وحصلت على شهادة الإتمام!",
         { duration: 6000 }
       );
-      // استخدم setTimeout لتفادي setState داخل effect مباشرة
       const timer = setTimeout(() => setShowCertificate(true), 100);
       return () => clearTimeout(timer);
     }
   }, [
-    state.completedLessons.length,
-    state.certificateIssuedAt,
+    activeProfile?.completedLessons.length,
+    activeProfile?.certificateIssuedAt,
     isMounted,
-    state.studentName,
+    activeProfile,
     issueCertificateIfEligible,
   ]);
+
+  // الاستماع لإلغاء قفل الإنجازات الجديدة
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handler = (e: Event) => {
+      const ids = (e as CustomEvent<string[]>).detail;
+      if (ids && ids.length > 0) {
+        ids.forEach((id) => {
+          const ach = ACHIEVEMENTS.find((a) => a.id === id);
+          if (ach) {
+            toast.success(`🏆 إنجاز جديد: ${ach.icon} ${ach.title} (+${ach.points} نقطة)`, {
+              duration: 5000,
+            });
+          }
+        });
+      }
+    };
+    window.addEventListener("physics-achievements-unlocked", handler);
+    return () => window.removeEventListener("physics-achievements-unlocked", handler);
+  }, []);
 
   function handleStart(name: string) {
     setStudentName(name);
@@ -77,7 +124,8 @@ export default function Home() {
   }
 
   function handleCompleteLesson(lessonId: string) {
-    if (state.completedLessons.includes(lessonId)) {
+    if (!activeProfile) return;
+    if (activeProfile.completedLessons.includes(lessonId)) {
       toast.info("لقد أكملت هذا الدرس بالفعل.");
       return;
     }
@@ -92,10 +140,7 @@ export default function Home() {
         "هل أنت متأكد من تصفير كل تقدمك؟ سيتم حذف الدروس المكتملة ونتائج الكويزات (لن يتم حذف اسمك)."
       )
     ) {
-      const studentName = state.studentName;
       resetProgress();
-      // أعد الاسم لأن resetProgress تمسح كل شيء
-      setStudentName(studentName);
       setView({ type: "dashboard" });
       toast.success("تم تصفير التقدم بنجاح.");
     }
@@ -125,27 +170,64 @@ export default function Home() {
   }
 
   function handleShowCertificate() {
-    // إذا لم يكن هناك تاريخ إصدار بعد، فأصدر الآن
-    if (state.completedLessons.length >= 7 && !state.certificateIssuedAt) {
+    if (activeProfile && activeProfile.completedLessons.length >= 7 && !activeProfile.certificateIssuedAt) {
       issueCertificateIfEligible(CURRICULUM_STATS.totalLessons);
     }
     setShowCertificate(true);
   }
 
-  // قبل التحميل على العميل، اعرض شاشة ترحيب لتفادي hydration mismatch
+  function handleDailyComplete(correct: boolean) {
+    completeDailyChallenge(correct);
+    if (correct) {
+      toast.success("🎯 إجابة صحيحة! حافظ على سلسلتك يوميًا.");
+    } else {
+      toast.info("إجابة غير صحيحة. ستتعلم أكثر غدًا!");
+    }
+  }
+
+  function handlePracticeAnswer(
+    questionId: string,
+    isCorrect: boolean,
+    difficulty: "easy" | "medium" | "hard"
+  ) {
+    recordPracticeAnswer(questionId, isCorrect, difficulty);
+  }
+
+  // قبل التحميل على العميل
   if (!isMounted) {
     return <WelcomeScreen onStart={() => {}} />;
   }
 
-  // إذا لم يُسجّل الطالب بعد، اعرض شاشة الترحيب
-  if (!state.studentName) {
+  // إذا لم يُسجّل الطالب بعد
+  if (!activeProfile) {
     return <WelcomeScreen onStart={handleStart} />;
   }
 
-  // إذا كانت الشهادة معروضة، اعرضها فوق المحتوى
+  // overlay الشهادة
   const certificateOverlay = showCertificate ? (
     <Certificate
-      progress={state}
+      progress={{
+        studentName: activeProfile.name,
+        completedLessons: activeProfile.completedLessons,
+        quizResults: activeProfile.quizResults,
+        lastVisited: activeProfile.lastVisited,
+        startedAt: activeProfile.startedAt,
+        lessonTimeSeconds: activeProfile.lessonTimeSeconds,
+        totalTimeSeconds: activeProfile.totalTimeSeconds,
+        certificateIssuedAt: activeProfile.certificateIssuedAt,
+        notebook: activeProfile.notebook,
+        spacedRepetition: activeProfile.spacedRepetition,
+        dailyChallengeCompletedDates: activeProfile.dailyChallengeCompletedDates,
+        dailyChallengeResults: activeProfile.dailyChallengeResults,
+        practiceStats: activeProfile.practiceStats,
+        lastStudyDate: activeProfile.lastStudyDate,
+        dailyStreak: activeProfile.dailyStreak,
+        unlockedAchievements: activeProfile.unlockedAchievements,
+        lastThemeMode: activeProfile.lastThemeMode,
+        id: activeProfile.id,
+        name: activeProfile.name,
+        createdAt: activeProfile.createdAt,
+      }}
       onClose={() => setShowCertificate(false)}
     />
   ) : null;
@@ -155,11 +237,24 @@ export default function Home() {
     return (
       <>
         <Dashboard
-          progress={state}
+          profile={activeProfile}
           onOpenLesson={handleOpenLesson}
           onReset={handleReset}
           onLogout={handleLogout}
           onShowCertificate={handleShowCertificate}
+        />
+        <FeaturesDrawer
+          activeProfile={activeProfile}
+          onNavigateLesson={handleOpenLesson}
+          onAnswer={handlePracticeAnswer}
+          onDailyComplete={handleDailyComplete}
+          onSaveNote={setNotebookEntry}
+          onSwitchProfile={switchProfile}
+          onAddProfile={addProfile}
+          onDeleteProfile={deleteProfile}
+          onExport={exportState}
+          onImport={importState}
+          profilesState={state}
         />
         {certificateOverlay}
       </>
@@ -171,12 +266,27 @@ export default function Home() {
     <>
       <LessonView
         lessonId={view.lessonId}
-        isCompleted={state.completedLessons.includes(view.lessonId)}
+        isCompleted={activeProfile.completedLessons.includes(view.lessonId)}
         onBack={handleBackToDashboard}
         onComplete={() => handleCompleteLesson(view.lessonId)}
         onNavigateLesson={handleOpenLesson}
         onQuizResult={(correct, total) => handleQuizResult(view.lessonId, correct, total)}
-        lessonTimeSpent={state.lessonTimeSeconds[view.lessonId] || 0}
+        lessonTimeSpent={activeProfile.lessonTimeSeconds[view.lessonId] || 0}
+        notes={activeProfile.notebook[view.lessonId] || ""}
+        onSaveNote={(text) => setNotebookEntry(view.lessonId, text)}
+      />
+      <FeaturesDrawer
+        activeProfile={activeProfile}
+        onNavigateLesson={handleOpenLesson}
+        onAnswer={handlePracticeAnswer}
+        onDailyComplete={handleDailyComplete}
+        onSaveNote={setNotebookEntry}
+        onSwitchProfile={switchProfile}
+        onAddProfile={addProfile}
+        onDeleteProfile={deleteProfile}
+        onExport={exportState}
+        onImport={importState}
+        profilesState={state}
       />
       {certificateOverlay}
     </>

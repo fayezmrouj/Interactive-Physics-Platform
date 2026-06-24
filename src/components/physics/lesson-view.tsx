@@ -20,6 +20,7 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Accordion,
@@ -61,6 +62,8 @@ type Props = {
   onNavigateLesson: (lessonId: string) => void;
   onQuizResult: (correct: number, total: number) => void;
   lessonTimeSpent: number;
+  notes?: string;
+  onSaveNote?: (text: string) => void;
 };
 
 export function LessonView({
@@ -71,6 +74,8 @@ export function LessonView({
   onNavigateLesson,
   onQuizResult,
   lessonTimeSpent,
+  notes,
+  onSaveNote,
 }: Props) {
   const found = findLesson(lessonId);
   if (!found) {
@@ -370,6 +375,22 @@ export function LessonView({
           />
         </SectionCard>
 
+        {/* مفكرة الطالب لهذا الدرس */}
+        {onSaveNote && (
+          <SectionCard
+            icon={<BookOpen className="w-5 h-5" />}
+            color="teal"
+            title="ملاحظاتي على هذا الدرس"
+            subtitle="اكتب ملاحظاتك الخاصة — تُحفظ تلقائيًا"
+          >
+            <LessonNotebook
+              key={lessonId}
+              initialText={notes || ""}
+              onSave={onSaveNote}
+            />
+          </SectionCard>
+        )}
+
         {/* زر الإكمال + التنقل */}
         <CompletionCard
           isCompleted={isCompleted}
@@ -508,6 +529,12 @@ const COLOR_MAP: Record<
     text: "text-violet-700 dark:text-violet-300",
     border: "border-violet-200 dark:border-violet-900",
     iconBg: "bg-violet-500",
+  },
+  teal: {
+    bg: "bg-teal-50 dark:bg-teal-950/20",
+    text: "text-teal-700 dark:text-teal-300",
+    border: "border-teal-200 dark:border-teal-900",
+    iconBg: "bg-teal-500",
   },
 };
 
@@ -974,6 +1001,57 @@ function QuizSection({
           </div>
         );
       })}
+    </div>
+  );
+}
+
+function LessonNotebook({
+  initialText,
+  onSave,
+}: {
+  initialText: string;
+  onSave: (text: string) => void;
+}) {
+  const [text, setText] = useState(initialText);
+  const [dirty, setDirty] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  function handleChange(v: string) {
+    setText(v);
+    setDirty(true);
+    setSaved(false);
+  }
+
+  function handleSave() {
+    onSave(text);
+    setDirty(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  }
+
+  return (
+    <div className="space-y-2">
+      <Textarea
+        value={text}
+        onChange={(e) => handleChange(e.target.value)}
+        placeholder="اكتب ملاحظاتك على هذا الدرس هنا... (مثل: نقاط مهمة، أسئلة، استنتاجات)"
+        className="min-h-32 bg-white dark:bg-slate-800 resize-y"
+      />
+      <div className="flex items-center justify-between text-xs">
+        <div className="text-slate-500">
+          {text.length} حرف
+          {dirty && <span className="text-amber-600 ml-2">• غير محفوظ</span>}
+          {saved && <span className="text-emerald-600 ml-2">✓ تم الحفظ</span>}
+        </div>
+        <Button
+          onClick={handleSave}
+          size="sm"
+          disabled={!dirty}
+          className="bg-teal-600 hover:bg-teal-700"
+        >
+          حفظ
+        </Button>
+      </div>
     </div>
   );
 }

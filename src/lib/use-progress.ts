@@ -1,33 +1,104 @@
 "use client";
 
 import { useCallback, useSyncExternalStore } from "react";
+import {
+  computeUnlockedAchievements,
+  type AchievementCheckState,
+} from "./physics/achievements";
+import { ALL_UNITS } from "./physics";
+import { getTodayKey, getDailyChallenge } from "./physics/practice-questions";
 
 const STORAGE_KEY = "physics-platform-state-v1";
-const THEME_KEY = "physics-platform-theme"; // يُدار عبر next-themes لكن نحتفظ بالمرجع
 
-export type ProgressState = {
-  studentName: string;
-  completedLessons: string[]; // lesson IDs
-  quizResults: Record<string, { correct: number; total: number }>; // lessonId -> result
-  lastVisited: string | null; // lessonId
-  startedAt: number | null;
-  lessonTimeSeconds: Record<string, number>; // lessonId -> seconds spent
-  totalTimeSeconds: number; // total time across all sessions
-  certificateIssuedAt: number | null; // timestamp when certificate was first eligible
+// ====== الأنواع ======
+
+export type SpacedRepetitionItem = {
+  questionId: string;
+  // صندوق المراجعة: 1=جديد، 2=بعد يوم، 3=بعد 3 أيام، 4=بعد أسبوع، 5=بعد شهر
+  box: 1 | 2 | 3 | 4 | 5;
+  nextReviewAt: number; // timestamp
+  lastAnsweredAt: number | null;
+  correctCount: number;
+  wrongCount: number;
 };
 
-const DEFAULT_STATE: ProgressState = {
-  studentName: "",
+export type UserProfile = {
+  id: string;
+  name: string;
+  createdAt: number;
+  // حالة كل ملف
+  completedLessons: string[];
+  quizResults: Record<string, { correct: number; total: number }>;
+  lastVisited: string | null;
+  startedAt: number | null;
+  lessonTimeSeconds: Record<string, number>;
+  totalTimeSeconds: number;
+  certificateIssuedAt: number | null;
+  // مفكرة الطالب: lessonId -> نص
+  notebook: Record<string, string>;
+  // مراجعة ذكية
+  spacedRepetition: Record<string, SpacedRepetitionItem>;
+  // التحدي اليومي
+  dailyChallengeCompletedDates: string[];
+  dailyChallengeResults: Record<string, { correct: boolean; date: string }>;
+  // التدريب المكثّف
+  practiceStats: {
+    totalAnswered: number;
+    totalCorrect: number;
+    byDifficulty: { easy: { c: number; t: number }; medium: { c: number; t: number }; hard: { c: number; t: number } };
+  };
+  // آخر سلسلة (streak)
+  lastStudyDate: string | null;
+  dailyStreak: number;
+  // الإنجازات
+  unlockedAchievements: string[];
+  // آخر وضع لوني
+  lastThemeMode: "light" | "dark" | null;
+};
+
+export type ProgressState = {
+  // دعم متعدد المستخدمين
+  profiles: Record<string, UserProfile>;
+  activeProfileId: string | null;
+};
+
+const createDefaultProfile = (id: string, name: string): UserProfile => ({
+  id,
+  name,
+  createdAt: Date.now(),
   completedLessons: [],
   quizResults: {},
   lastVisited: null,
-  startedAt: null,
+  startedAt: Date.now(),
   lessonTimeSeconds: {},
   totalTimeSeconds: 0,
   certificateIssuedAt: null,
+  notebook: {},
+  spacedRepetition: {},
+  dailyChallengeCompletedDates: [],
+  dailyChallengeResults: {},
+  practiceStats: {
+    totalAnswered: 0,
+    totalCorrect: 0,
+    byDifficulty: {
+      easy: { c: 0, t: 0 },
+      medium: { c: 0, t: 0 },
+      hard: { c: 0, t: 0 },
+    },
+  },
+  lastStudyDate: null,
+  dailyStreak: 0,
+  unlockedAchievements: [],
+  lastThemeMode: null,
+});
+
+const DEFAULT_STATE: ProgressState = {
+  profiles: {},
+  activeProfileId: null,
 };
 
-// Cache على مستوى الوحدة لتجنب القراءة المتكررة من localStorage
+// ====== Cache على مستوى الوحدة ======
+
 let cachedState: ProgressState | null = null;
 let cachedRaw: string | null = null;
 
@@ -42,6 +113,21 @@ function readFromStorage(): ProgressState {
       return cachedState;
     }
     const parsed = JSON.parse(raw);
+    // Migration: إذا كانت البنية قديمة (فيها studentName بدلاً من profiles)
+    if (parsed.studentName && !parsed.profiles) {
+      const profile = createDefaultProfile("user-1", parsed.studentName);
+      profile.completedLessons = parsed.completedLessons || [];
+      profile.quizResults = parsed.quizResults || {};
+      profile.lastVisited = parsed.lastVisited || null;
+      profile.startedAt = parsed.startedAt || Date.now();
+      profile.lessonTimeSeconds = parsed.lessonTimeSeconds || {};
+      profile.totalTimeSeconds = parsed.totalTimeSeconds || 0;
+      profile.certificateIssuedAt = parsed.certificateIssuedAt || null;
+      cachedState = { profiles: { "user-1": profile }, activeProfileId: "user-1" };
+      // اكتب النسخة المهاجرة فورًا
+      writeToStorage(cachedState);
+      return cachedState;
+    }
     cachedState = { ...DEFAULT_STATE, ...parsed };
     return cachedState;
   } catch {
@@ -72,49 +158,154 @@ function subscribe(callback: () => void): () => void {
   };
 }
 
+// ====== Helper: احصل على الملف النشط ======
+
+function getActiveProfile(state: ProgressState): UserProfile | null {
+  if (!state.activeProfileId) return null;
+  return state.profiles[state.activeProfileId] || null;
+}
+
+function updateActiveProfile(
+  state: ProgressState,
+  updater: (p: UserProfile) => UserProfile
+): ProgressState {
+  if (!state.activeProfileId) return state;
+  const cur = state.profiles[state.activeProfileId];
+  if (!cur) return state;
+  const updated = updater({ ...cur });
+  // تحديث الإنجازات تلقائيًا
+  const achState: AchievementCheckState = {
+    completedLessons: updated.completedLessons,
+    quizResults: updated.quizResults,
+    totalTimeSeconds: updated.totalTimeSeconds,
+    dailyStreak: updated.dailyStreak,
+    dailyChallengeCompletedDates: updated.dailyChallengeCompletedDates,
+    perfectQuizzes: Object.values(updated.quizResults).filter(
+      (r) => r.correct === r.total
+    ).length,
+    unitsCompleted: ALL_UNITS.filter((u) =>
+      u.lessons.every((l) => updated.completedLessons.includes(l.id))
+    ).length,
+    lastThemeMode: updated.lastThemeMode,
+  };
+  const newAchievements = computeUnlockedAchievements(achState);
+  const newlyUnlocked = newAchievements.filter(
+    (id) => !updated.unlockedAchievements.includes(id)
+  );
+  updated.unlockedAchievements = newAchievements;
+
+  // إذا فُتحت إنجازات جديدة، أطلق حدثًا
+  if (newlyUnlocked.length > 0 && typeof window !== "undefined") {
+    setTimeout(() => {
+      window.dispatchEvent(
+        new CustomEvent("physics-achievements-unlocked", {
+          detail: newlyUnlocked,
+        })
+      );
+    }, 0);
+  }
+
+  return {
+    ...state,
+    profiles: { ...state.profiles, [state.activeProfileId]: updated },
+  };
+}
+
+// ====== Hook الرئيسي ======
+
 export function useProgress() {
-  // useSyncExternalStore يتولّى المزامنة مع localStorage ويتعامل مع SSR تلقائيًا
   const state = useSyncExternalStore(
     subscribe,
-    readFromStorage, // client snapshot
-    () => DEFAULT_STATE // server snapshot (ثابت لتجنّب hydration mismatch)
+    readFromStorage,
+    () => DEFAULT_STATE
   );
 
+  const activeProfile = getActiveProfile(state);
+
+  // === إدارة المستخدمين ===
   const setStudentName = useCallback((name: string) => {
-    const next = { ...readFromStorage(), studentName: name, startedAt: Date.now() };
-    writeToStorage(next);
+    const cur = readFromStorage();
+    const id = `user-${Date.now()}`;
+    const profile = createDefaultProfile(id, name);
+    writeToStorage({
+      profiles: { ...cur.profiles, [id]: profile },
+      activeProfileId: id,
+    });
   }, []);
 
+  const switchProfile = useCallback((profileId: string) => {
+    const cur = readFromStorage();
+    if (!cur.profiles[profileId]) return;
+    writeToStorage({ ...cur, activeProfileId: profileId });
+  }, []);
+
+  const addProfile = useCallback((name: string) => {
+    const cur = readFromStorage();
+    const id = `user-${Date.now()}`;
+    const profile = createDefaultProfile(id, name);
+    writeToStorage({
+      profiles: { ...cur.profiles, [id]: profile },
+      activeProfileId: id,
+    });
+  }, []);
+
+  const deleteProfile = useCallback((profileId: string) => {
+    const cur = readFromStorage();
+    if (Object.keys(cur.profiles).length <= 1) return; // لا تحذف آخر ملف
+    const newProfiles = { ...cur.profiles };
+    delete newProfiles[profileId];
+    writeToStorage({
+      profiles: newProfiles,
+      activeProfileId:
+        cur.activeProfileId === profileId
+          ? Object.keys(newProfiles)[0]
+          : cur.activeProfileId,
+    });
+  }, []);
+
+  // === الدروس ===
   const completeLesson = useCallback((lessonId: string) => {
     const cur = readFromStorage();
-    if (cur.completedLessons.includes(lessonId)) return;
-    const next: ProgressState = {
-      ...cur,
-      completedLessons: [...cur.completedLessons, lessonId],
-      lastVisited: lessonId,
-    };
+    const next = updateActiveProfile(cur, (p) => {
+      if (p.completedLessons.includes(lessonId)) return p;
+      const todayKey = getTodayKey();
+      const newStreak =
+        p.lastStudyDate === todayKey
+          ? p.dailyStreak
+          : p.lastStudyDate === yesterdayKey()
+          ? p.dailyStreak + 1
+          : 1;
+      return {
+        ...p,
+        completedLessons: [...p.completedLessons, lessonId],
+        lastVisited: lessonId,
+        lastStudyDate: todayKey,
+        dailyStreak: newStreak,
+      };
+    });
     writeToStorage(next);
   }, []);
 
   const uncompleteLesson = useCallback((lessonId: string) => {
     const cur = readFromStorage();
-    const next: ProgressState = {
-      ...cur,
-      completedLessons: cur.completedLessons.filter((id) => id !== lessonId),
-    };
+    const next = updateActiveProfile(cur, (p) => ({
+      ...p,
+      completedLessons: p.completedLessons.filter((id) => id !== lessonId),
+    }));
     writeToStorage(next);
   }, []);
 
   const setQuizResult = useCallback(
     (lessonId: string, correct: number, total: number) => {
       const cur = readFromStorage();
-      const prev = cur.quizResults[lessonId];
-      // احتفظ بأفضل نتيجة فقط
-      const best = prev && prev.correct > correct ? prev : { correct, total };
-      const next: ProgressState = {
-        ...cur,
-        quizResults: { ...cur.quizResults, [lessonId]: best },
-      };
+      const next = updateActiveProfile(cur, (p) => {
+        const prev = p.quizResults[lessonId];
+        const best = prev && prev.correct > correct ? prev : { correct, total };
+        return {
+          ...p,
+          quizResults: { ...p.quizResults, [lessonId]: best },
+        };
+      });
       writeToStorage(next);
     },
     []
@@ -122,42 +313,166 @@ export function useProgress() {
 
   const setLastVisited = useCallback((lessonId: string) => {
     const cur = readFromStorage();
-    const next: ProgressState = { ...cur, lastVisited: lessonId };
+    const next = updateActiveProfile(cur, (p) => ({
+      ...p,
+      lastVisited: lessonId,
+    }));
     writeToStorage(next);
   }, []);
 
-  // إضافة وقت للدرس + الإجمالي
+  // === تتبع الوقت ===
   const addLessonTime = useCallback((lessonId: string, seconds: number) => {
     if (seconds <= 0) return;
     const cur = readFromStorage();
-    const prevLessonTime = cur.lessonTimeSeconds[lessonId] || 0;
-    const next: ProgressState = {
-      ...cur,
-      lessonTimeSeconds: {
-        ...cur.lessonTimeSeconds,
-        [lessonId]: prevLessonTime + seconds,
-      },
-      totalTimeSeconds: cur.totalTimeSeconds + seconds,
-    };
+    const next = updateActiveProfile(cur, (p) => {
+      const prevTime = p.lessonTimeSeconds[lessonId] || 0;
+      const todayKey = getTodayKey();
+      const newStreak =
+        p.lastStudyDate === todayKey
+          ? p.dailyStreak
+          : p.lastStudyDate === yesterdayKey()
+          ? p.dailyStreak + 1
+          : 1;
+      return {
+        ...p,
+        lessonTimeSeconds: {
+          ...p.lessonTimeSeconds,
+          [lessonId]: prevTime + seconds,
+        },
+        totalTimeSeconds: p.totalTimeSeconds + seconds,
+        lastStudyDate: todayKey,
+        dailyStreak: newStreak,
+      };
+    });
     writeToStorage(next);
   }, []);
 
+  // === المفكرة ===
+  const setNotebookEntry = useCallback((lessonId: string, text: string) => {
+    const cur = readFromStorage();
+    const next = updateActiveProfile(cur, (p) => ({
+      ...p,
+      notebook: { ...p.notebook, [lessonId]: text },
+    }));
+    writeToStorage(next);
+  }, []);
+
+  // === التحدي اليومي ===
+  const completeDailyChallenge = useCallback(
+    (correct: boolean) => {
+      const cur = readFromStorage();
+      const todayKey = getTodayKey();
+      const next = updateActiveProfile(cur, (p) => {
+        if (p.dailyChallengeCompletedDates.includes(todayKey)) return p;
+        return {
+          ...p,
+          dailyChallengeCompletedDates: [
+            ...p.dailyChallengeCompletedDates,
+            todayKey,
+          ],
+          dailyChallengeResults: {
+            ...p.dailyChallengeResults,
+            [todayKey]: { correct, date: todayKey },
+          },
+        };
+      });
+      writeToStorage(next);
+    },
+    []
+  );
+
+  // === التدريب المكثّف ===
+  const recordPracticeAnswer = useCallback(
+    (
+      questionId: string,
+      isCorrect: boolean,
+      difficulty: "easy" | "medium" | "hard"
+    ) => {
+      const cur = readFromStorage();
+      const next = updateActiveProfile(cur, (p) => {
+        const d = p.practiceStats.byDifficulty[difficulty];
+        const newStats = {
+          totalAnswered: p.practiceStats.totalAnswered + 1,
+          totalCorrect: p.practiceStats.totalCorrect + (isCorrect ? 1 : 0),
+          byDifficulty: {
+            ...p.practiceStats.byDifficulty,
+            [difficulty]: {
+              c: d.c + (isCorrect ? 1 : 0),
+              t: d.t + 1,
+            },
+          },
+        };
+        // تحديث صندوق المراجعة الذكية
+        const prev = p.spacedRepetition[questionId];
+        const box = prev?.box || 1;
+        const newBox = isCorrect
+          ? Math.min(5, box + 1) as 1 | 2 | 3 | 4 | 5
+          : 1;
+        const daysUntilNext = [0, 1, 3, 7, 30][newBox - 1];
+        const nextReviewAt = Date.now() + daysUntilNext * 86400000;
+        return {
+          ...p,
+          practiceStats: newStats,
+          spacedRepetition: {
+            ...p.spacedRepetition,
+            [questionId]: {
+              questionId,
+              box: newBox,
+              nextReviewAt,
+              lastAnsweredAt: Date.now(),
+              correctCount: (prev?.correctCount || 0) + (isCorrect ? 1 : 0),
+              wrongCount: (prev?.wrongCount || 0) + (isCorrect ? 0 : 1),
+            },
+          },
+        };
+      });
+      writeToStorage(next);
+    },
+    []
+  );
+
+  // === الإنجازات ===
+  const unlockThemeAchievement = useCallback(
+    (mode: "light" | "dark") => {
+      const cur = readFromStorage();
+      const next = updateActiveProfile(cur, (p) => ({
+        ...p,
+        lastThemeMode: mode,
+      }));
+      writeToStorage(next);
+    },
+    []
+  );
+
+  // === إدارة عامة ===
   const resetProgress = useCallback(() => {
-    writeToStorage(DEFAULT_STATE);
+    const cur = readFromStorage();
+    if (!cur.activeProfileId) return;
+    const newProfile = createDefaultProfile(
+      cur.activeProfileId,
+      cur.profiles[cur.activeProfileId].name
+    );
+    writeToStorage({
+      ...cur,
+      profiles: { ...cur.profiles, [cur.activeProfileId]: newProfile },
+    });
   }, []);
 
   const logout = useCallback(() => {
     writeToStorage(DEFAULT_STATE);
   }, []);
 
-  // إصدار شهادة عند إكمال المنهج (نُسجّل تاريخ الإصدار أول مرة)
   const issueCertificateIfEligible = useCallback(
     (totalLessons: number): { eligible: boolean; issued: boolean } => {
       const cur = readFromStorage();
-      const completedCount = cur.completedLessons.length;
-      const eligible = completedCount >= totalLessons && totalLessons > 0;
-      if (eligible && !cur.certificateIssuedAt) {
-        const next: ProgressState = { ...cur, certificateIssuedAt: Date.now() };
+      if (!cur.activeProfileId) return { eligible: false, issued: false };
+      const p = cur.profiles[cur.activeProfileId];
+      const eligible = p.completedLessons.length >= totalLessons && totalLessons > 0;
+      if (eligible && !p.certificateIssuedAt) {
+        const next = updateActiveProfile(cur, (pp) => ({
+          ...pp,
+          certificateIssuedAt: Date.now(),
+        }));
         writeToStorage(next);
         return { eligible: true, issued: true };
       }
@@ -166,23 +481,63 @@ export function useProgress() {
     []
   );
 
+  // === تصدير/استيراد ===
+  const exportState = useCallback((): string => {
+    return JSON.stringify(readFromStorage(), null, 2);
+  }, []);
+
+  const importState = useCallback((json: string): boolean => {
+    try {
+      const parsed = JSON.parse(json);
+      if (!parsed.profiles || !parsed.activeProfileId) return false;
+      writeToStorage(parsed);
+      return true;
+    } catch {
+      return false;
+    }
+  }, []);
+
   return {
     state,
+    activeProfile,
+    // إدارة المستخدمين
     setStudentName,
+    switchProfile,
+    addProfile,
+    deleteProfile,
+    // الدروس
     completeLesson,
     uncompleteLesson,
     setQuizResult,
     setLastVisited,
+    // الوقت
     addLessonTime,
+    // المفكرة
+    setNotebookEntry,
+    // التحدي اليومي
+    completeDailyChallenge,
+    // التدريب
+    recordPracticeAnswer,
+    // الإنجازات
+    unlockThemeAchievement,
+    // عام
     resetProgress,
     logout,
     issueCertificateIfEligible,
+    // تصدير/استيراد
+    exportState,
+    importState,
   };
 }
 
-// مرافق للتحقق إذا كان الكود يعمل على العميل (لمعالجة حالة الـ hydration الأولى)
+function yesterdayKey(): string {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  return getTodayKey(d);
+}
+
+// مرافق
 export function useIsMounted(): boolean {
-  // يستخدم useSyncExternalStore لتجنّب hydration mismatch
   return useSyncExternalStore(
     () => () => {},
     () => true,
@@ -190,7 +545,6 @@ export function useIsMounted(): boolean {
   );
 }
 
-// تنسيق الثواني بصيغة "س:د:ث" أو "د:ث"
 export function formatTime(totalSeconds: number): string {
   if (totalSeconds < 0) totalSeconds = 0;
   const h = Math.floor(totalSeconds / 3600);
