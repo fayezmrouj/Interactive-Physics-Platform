@@ -23,6 +23,7 @@ import {
   Flame,
   GraduationCap,
   LogOut,
+  Menu,
   RotateCcw,
   Sparkles,
   Trophy,
@@ -54,6 +55,7 @@ type Props = {
   onReset: () => void;
   onLogout: () => void;
   onShowCertificate: () => void;
+  onOpenFeatures: () => void;
 };
 
 export function Dashboard({
@@ -62,6 +64,7 @@ export function Dashboard({
   onReset,
   onLogout,
   onShowCertificate,
+  onOpenFeatures,
 }: Props) {
   const totalLessons = CURRICULUM_STATS.totalLessons;
   const completedCount = profile.completedLessons.length;
@@ -128,6 +131,15 @@ export function Dashboard({
             </div>
           </div>
           <div className="flex items-center gap-1.5">
+            <Button
+              size="sm"
+              onClick={onOpenFeatures}
+              className="bg-gradient-to-l from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-md"
+              title="كل الميزات الإضافية (حاسبة، محاكاة، تدريب، إنجازات...)"
+            >
+              <Menu className="w-4 h-4 ml-1" />
+              المزيد
+            </Button>
             <ThemeToggle />
             <Button
               size="sm"
@@ -155,7 +167,7 @@ export function Dashboard({
               className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
             >
               <LogOut className="w-4 h-4 ml-1" />
-              خروج
+              <span className="hidden sm:inline">خروج</span>
             </Button>
           </div>
         </div>

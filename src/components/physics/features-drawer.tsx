@@ -6,12 +6,10 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
-  Menu,
   Search,
   BookA,
   Calculator,
@@ -174,6 +172,9 @@ type Props = {
   onExport: () => string;
   onImport: (json: string) => boolean;
   profilesState: import("@/lib/use-progress").ProgressState;
+  // فتح من الخارج (من زر الرأس)
+  externalOpen?: boolean;
+  onExternalOpenChange?: (open: boolean) => void;
 };
 
 export function FeaturesDrawer({
@@ -188,8 +189,13 @@ export function FeaturesDrawer({
   onExport,
   onImport,
   profilesState,
+  externalOpen,
+  onExternalOpenChange,
 }: Props) {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = externalOpen !== undefined ? externalOpen : internalOpen;
+  const setOpen = onExternalOpenChange || setInternalOpen;
+
   const [activeFeature, setActiveFeature] = useState<FeatureKey | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
 
@@ -204,24 +210,9 @@ export function FeaturesDrawer({
   }
 
   const activeFeatureData = FEATURES.find((f) => f.key === activeFeature);
-  // لا يمكن استخدام Profiles هنا بدون state - نمرر عبر props
 
   return (
     <>
-      {/* زر القائمة */}
-      <Button
-        onClick={() => {
-          setActiveFeature(null);
-          setOpen(true);
-        }}
-        size="sm"
-        className="bg-gradient-to-l from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white"
-        title="كل الميزات"
-      >
-        <Menu className="w-4 h-4 ml-1" />
-        المزيد
-      </Button>
-
       {/* Dialog البحث */}
       <SmartSearch
         open={searchOpen}
@@ -233,7 +224,13 @@ export function FeaturesDrawer({
       />
 
       {/* Drawer الميزات */}
-      <Sheet open={open} onOpenChange={setOpen}>
+      <Sheet
+        open={open}
+        onOpenChange={(v) => {
+          setOpen(v);
+          if (!v) setActiveFeature(null);
+        }}
+      >
         <SheetContent
           side="right"
           className="w-full sm:max-w-2xl p-0 flex flex-col"

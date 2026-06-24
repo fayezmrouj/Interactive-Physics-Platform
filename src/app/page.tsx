@@ -42,6 +42,7 @@ export default function Home() {
   const { theme } = useTheme();
   const [view, setView] = useState<View>({ type: "dashboard" });
   const [showCertificate, setShowCertificate] = useState(false);
+  const [featuresOpen, setFeaturesOpen] = useState(false);
 
   // تتبع الوضع اللوني للإنجازات - تجنّب الحلقة اللانهائية بالتحقق من التغيير
   const lastThemeRef = useRef<string | null>(null);
@@ -242,6 +243,7 @@ export default function Home() {
           onReset={handleReset}
           onLogout={handleLogout}
           onShowCertificate={handleShowCertificate}
+          onOpenFeatures={() => setFeaturesOpen(true)}
         />
         <FeaturesDrawer
           activeProfile={activeProfile}
@@ -255,6 +257,8 @@ export default function Home() {
           onExport={exportState}
           onImport={importState}
           profilesState={state}
+          externalOpen={featuresOpen}
+          onExternalOpenChange={setFeaturesOpen}
         />
         {certificateOverlay}
       </>
@@ -287,6 +291,8 @@ export default function Home() {
         onExport={exportState}
         onImport={importState}
         profilesState={state}
+        externalOpen={featuresOpen}
+        onExternalOpenChange={setFeaturesOpen}
       />
       {certificateOverlay}
     </>
