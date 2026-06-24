@@ -29,6 +29,7 @@ import {
 import { useTheme } from "next-themes";
 import { getDailyQuote } from "@/lib/physics/quotes";
 import { getTodayKey } from "@/lib/physics/practice-questions";
+import { ALL_UNITS } from "@/lib/physics";
 import { HowItWorks } from "./how-it-works";
 import { UnitsPreview } from "./units-preview";
 import { DailyChallengeCountdown } from "./daily-countdown";
@@ -278,6 +279,32 @@ export function WelcomeScreen({
   const [grade, setGrade] = useState<"9" | "10" | "all">("all");
   const [error, setError] = useState("");
   const [showHowItWorks, setShowHowItWorks] = useState(false);
+  const [selectedUnitHint, setSelectedUnitHint] = useState<string | null>(null);
+  const nameInputRef = useRef<HTMLInputElement>(null);
+
+  function handleUnitClick(unitTitle: string, unitGrade: string) {
+    // اعرض تلميحًا للمستخدم بوحدة مختارة
+    setSelectedUnitHint(`📖 اخترت "${unitTitle}" — سجّل اسمك للبدء بهذه الوحدة`);
+
+    // مرّر لحقل الاسم بلطف
+    setTimeout(() => {
+      nameInputRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+      nameInputRef.current?.focus();
+    }, 100);
+
+    // اضبط الصف تلقائيًا حسب الوحدة المختارة
+    if (unitGrade.includes("التاسع")) {
+      setGrade("9");
+    } else if (unitGrade.includes("العاشر")) {
+      setGrade("10");
+    }
+
+    // أخفِ التلميح بعد 6 ثوانٍ
+    setTimeout(() => setSelectedUnitHint(null), 6000);
+  }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -463,6 +490,7 @@ export function WelcomeScreen({
                     ما اسمك أيها الفيزيائي؟
                   </Label>
                   <Input
+                    ref={nameInputRef}
                     id="student-name"
                     type="text"
                     value={name}
@@ -472,6 +500,18 @@ export function WelcomeScreen({
                     autoFocus
                     maxLength={40}
                   />
+                  {/* تلميح الوحدة المختارة */}
+                  {selectedUnitHint && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                      className="flex items-center gap-2 p-2.5 rounded-lg bg-gradient-to-l from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30 border border-indigo-200 dark:border-indigo-800 text-xs text-indigo-700 dark:text-indigo-300"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 shrink-0" />
+                      <span>{selectedUnitHint}</span>
+                    </motion.div>
+                  )}
                   {error && <p className="text-sm text-rose-600">{error}</p>}
                 </div>
 
@@ -552,7 +592,16 @@ export function WelcomeScreen({
             className="mt-6"
           >
             <Card className="bg-white/10 backdrop-blur-sm border-white/20 p-4">
-              <UnitsPreview highlightGrade={grade} />
+              <UnitsPreview
+                highlightGrade={grade}
+                onSelectUnit={(unitId) => {
+                  // ابحث عن الوحدة لاستخراج العنوان والصف
+                  const unit = ALL_UNITS.find((u) => u.id === unitId);
+                  if (unit) {
+                    handleUnitClick(unit.title, unit.grade);
+                  }
+                }}
+              />
             </Card>
           </motion.div>
         </motion.div>
