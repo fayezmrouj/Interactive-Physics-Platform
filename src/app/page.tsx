@@ -316,6 +316,17 @@ export default function Home() {
         lessonTimeSpent={activeProfile.lessonTimeSeconds[view.lessonId] || 0}
         notes={activeProfile.notebook[view.lessonId] || ""}
         onSaveNote={(text) => setNotebookEntry(view.lessonId, text)}
+        studentName={activeProfile.name}
+        eligibleForCertificate={
+          Math.round(
+            (activeProfile.completedLessons.length / CURRICULUM_STATS.totalLessons) * 100
+          ) >= 70
+        }
+        certificateIssued={!!activeProfile.certificateIssuedAt}
+        onOpenFeatures={() => setFeaturesOpen(true)}
+        onShowCertificate={handleShowCertificate}
+        onReset={handleReset}
+        onLogout={handleLogout}
       />
       <FeaturesDrawer
         activeProfile={activeProfile}

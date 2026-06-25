@@ -54,6 +54,7 @@ import { ALL_LESSON_IDS, findLesson } from "@/lib/physics";
 import { TimeTracker } from "./time-tracker";
 import { Math } from "./math";
 import { SmartMath } from "./smart-math";
+import { AppHeader } from "./app-header";
 import { formatTime } from "@/lib/use-progress";
 
 type Props = {
@@ -66,6 +67,14 @@ type Props = {
   lessonTimeSpent: number;
   notes?: string;
   onSaveNote?: (text: string) => void;
+  // Props للترويسة الرئيسية
+  studentName: string;
+  eligibleForCertificate: boolean;
+  certificateIssued: boolean;
+  onOpenFeatures: () => void;
+  onShowCertificate: () => void;
+  onReset: () => void;
+  onLogout: () => void;
 };
 
 export function LessonView({
@@ -78,6 +87,13 @@ export function LessonView({
   lessonTimeSpent,
   notes,
   onSaveNote,
+  studentName,
+  eligibleForCertificate,
+  certificateIssued,
+  onOpenFeatures,
+  onShowCertificate,
+  onReset,
+  onLogout,
 }: Props) {
   const found = findLesson(lessonId);
   if (!found) {
@@ -107,6 +123,18 @@ export function LessonView({
       {/* مكوّن تتبع الوقت - يعمل في الخلفية */}
       <TimeTracker lessonId={lessonId} />
 
+      {/* الترويسة الرئيسية (ثابتة في الأعلى) */}
+      <AppHeader
+        studentName={studentName}
+        eligibleForCertificate={eligibleForCertificate}
+        certificateIssued={certificateIssued}
+        onOpenFeatures={onOpenFeatures}
+        onShowCertificate={onShowCertificate}
+        onReset={onReset}
+        onLogout={onLogout}
+      />
+
+      {/* ترويسة الدرس (ثابتة أسفل الترويسة الرئيسية) */}
       <LessonHeader
         lesson={lesson}
         unit={unit}
@@ -433,7 +461,7 @@ function LessonHeader({
   const liveTime = lessonTimeSpent;
 
   return (
-    <header className={`sticky top-0 z-30 bg-gradient-to-l ${unit.color} text-white shadow-lg backdrop-blur-sm`}>
+    <header className={`sticky top-14 md:top-[68px] z-30 bg-gradient-to-l ${unit.color} text-white shadow-lg backdrop-blur-sm`}>
       <div className="max-w-4xl mx-auto px-4 py-3 md:py-4">
         <div className="flex items-center justify-between gap-3">
           {/* يمين: زر العودة + معلومات الدرس */}
