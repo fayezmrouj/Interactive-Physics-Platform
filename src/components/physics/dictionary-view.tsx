@@ -181,7 +181,7 @@ function FormulaCard({
           </span>
         </div>
       </div>
-      <p className="text-sm text-slate-600 dark:text-slate-300 mb-2">{entry.description}</p>
+      <p className="text-sm text-slate-600 dark:text-slate-300 mb-2"><SmartMath text={entry.description} /></p>
       <button
         onClick={() => onNavigateLesson(entry.lessonId)}
         className="text-xs text-indigo-700 dark:text-indigo-400 hover:underline flex items-center gap-1"

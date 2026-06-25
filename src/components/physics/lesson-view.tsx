@@ -155,7 +155,7 @@ export function LessonView({
           title="الفكرة الرئيسة"
         >
           <p className="text-slate-700 dark:text-slate-200 leading-relaxed text-base md:text-lg">
-            {lesson.mainIdea}
+            <SmartMath text={lesson.mainIdea} />
           </p>
         </SectionCard>
 
@@ -197,7 +197,7 @@ export function LessonView({
           <div className="prose prose-slate dark:prose-invert max-w-none space-y-4">
             {lesson.explanation.map((para, i) => (
               <p key={i} className="text-slate-700 dark:text-slate-200 leading-loose text-base">
-                {para}
+                <SmartMath text={para} />
               </p>
             ))}
           </div>
@@ -247,7 +247,7 @@ export function LessonView({
                   </div>
                 )}
                 <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
-                  {c.definition}
+                  <SmartMath text={c.definition} />
                 </p>
               </div>
             ))}
@@ -272,7 +272,7 @@ export function LessonView({
                     {f.name}
                   </h4>
                   <p className="text-sm text-slate-600 dark:text-slate-300">
-                    {f.description}
+                    <SmartMath text={f.description} />
                   </p>
                 </div>
                 <div className="bg-white dark:bg-slate-800 rounded-lg px-4 py-3 border-2 border-cyan-300 dark:border-cyan-700 shadow-sm shrink-0 self-start md:self-center">
@@ -663,7 +663,7 @@ function ExperimentSection({ experiment }: { experiment: Lesson["experiment"] })
                   <span className="w-5 h-5 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">
                     {i + 1}
                   </span>
-                  <span className="leading-relaxed">{step}</span>
+                  <SmartMath text={step} />
                 </li>
               ))}
             </ol>
@@ -679,7 +679,7 @@ function ExperimentSection({ experiment }: { experiment: Lesson["experiment"] })
           </h4>
         </div>
         <p className="text-sm md:text-base text-slate-800 dark:text-slate-100 leading-relaxed mb-3">
-          {experiment.question}
+          <SmartMath text={experiment.question} />
         </p>
         <Collapsible open={showAnswer} onOpenChange={setShowAnswer}>
           <Button
@@ -710,7 +710,7 @@ function ExperimentSection({ experiment }: { experiment: Lesson["experiment"] })
                 الإجابة النموذجية:
               </div>
               <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
-                {experiment.expectedAnswer}
+                <SmartMath text={experiment.expectedAnswer} />
               </p>
             </motion.div>
           </CollapsibleContent>
