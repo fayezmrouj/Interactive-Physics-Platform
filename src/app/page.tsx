@@ -5,6 +5,7 @@ import { WelcomeScreen } from "@/components/physics/welcome-screen";
 import { Dashboard } from "@/components/physics/dashboard";
 import { LessonView } from "@/components/physics/lesson-view";
 import { Certificate } from "@/components/physics/certificate";
+import { CertificateInstructions } from "@/components/physics/certificate-instructions";
 import { FeaturesDrawer } from "@/components/physics/features-drawer";
 import { useProgress, useIsMounted } from "@/lib/use-progress";
 import { CURRICULUM_STATS } from "@/lib/physics";
@@ -45,6 +46,8 @@ export default function Home() {
   const [featuresOpen, setFeaturesOpen] = useState(false);
   // وحدة مميزة من صفحة الترحيب - ستُفتح تلقائيًا في لوحة التحكم
   const [pendingUnitId, setPendingUnitId] = useState<string | null>(null);
+  // تعليمات الشهادة
+  const [showCertInstructions, setShowCertInstructions] = useState(false);
 
   // تتبع الوضع اللوني للإنجازات - تجنّب الحلقة اللانهائية بالتحقق من التغيير
   const lastThemeRef = useRef<string | null>(null);
@@ -184,6 +187,10 @@ export default function Home() {
     setShowCertificate(true);
   }
 
+  function handleShowCertInstructions() {
+    setShowCertInstructions(true);
+  }
+
   function handleDailyComplete(correct: boolean) {
     completeDailyChallenge(correct);
     if (correct) {
@@ -269,6 +276,19 @@ export default function Home() {
     />
   ) : null;
 
+  // overlay تعليمات الشهادة
+  const certInstructionsOverlay = (
+    <CertificateInstructions
+      open={showCertInstructions}
+      onOpenChange={setShowCertInstructions}
+      completionPct={Math.round(
+        (activeProfile.completedLessons.length / CURRICULUM_STATS.totalLessons) * 100
+      )}
+      completedLessons={activeProfile.completedLessons.length}
+      totalLessons={CURRICULUM_STATS.totalLessons}
+    />
+  );
+
   // لوحة التحكم
   if (view.type === "dashboard") {
     return (
@@ -299,6 +319,7 @@ export default function Home() {
           onExternalOpenChange={setFeaturesOpen}
         />
         {certificateOverlay}
+        {certInstructionsOverlay}
       </>
     );
   }
@@ -325,6 +346,7 @@ export default function Home() {
         certificateIssued={!!activeProfile.certificateIssuedAt}
         onOpenFeatures={() => setFeaturesOpen(true)}
         onShowCertificate={handleShowCertificate}
+        onShowCertInstructions={handleShowCertInstructions}
         onReset={handleReset}
         onLogout={handleLogout}
       />
@@ -344,6 +366,7 @@ export default function Home() {
         onExternalOpenChange={setFeaturesOpen}
       />
       {certificateOverlay}
+        {certInstructionsOverlay}
     </>
   );
 }

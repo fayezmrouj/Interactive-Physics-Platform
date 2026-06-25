@@ -74,6 +74,7 @@ type Props = {
   certificateIssued: boolean;
   onOpenFeatures: () => void;
   onShowCertificate: () => void;
+  onShowCertInstructions?: () => void;
   onReset: () => void;
   onLogout: () => void;
 };
@@ -93,6 +94,7 @@ export function LessonView({
   certificateIssued,
   onOpenFeatures,
   onShowCertificate,
+  onShowCertInstructions,
   onReset,
   onLogout,
 }: Props) {
@@ -131,6 +133,7 @@ export function LessonView({
         certificateIssued={certificateIssued}
         onOpenFeatures={onOpenFeatures}
         onShowCertificate={onShowCertificate}
+        onShowCertInstructions={onShowCertInstructions}
         onReset={onReset}
         onLogout={onLogout}
       />

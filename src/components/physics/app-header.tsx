@@ -18,6 +18,7 @@ type Props = {
   onShowCertificate: () => void;
   onReset: () => void;
   onLogout: () => void;
+  onShowCertInstructions?: () => void;
 };
 
 /**
@@ -32,6 +33,7 @@ export function AppHeader({
   onShowCertificate,
   onReset,
   onLogout,
+  onShowCertInstructions,
 }: Props) {
   return (
     <header
@@ -68,10 +70,15 @@ export function AppHeader({
           <ThemeToggle />
           <Button
             size="sm"
-            onClick={onShowCertificate}
+            onClick={() => {
+              if (eligibleForCertificate) {
+                onShowCertificate();
+              } else {
+                onShowCertInstructions?.();
+              }
+            }}
             className="hidden sm:inline-flex bg-gradient-to-l from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white h-8 md:h-9"
-            disabled={!eligibleForCertificate}
-            title={!eligibleForCertificate ? "أكمل 70% من المنهج" : ""}
+            title={!eligibleForCertificate ? "اضغط لمعرفة كيف تحصل على الشهادة" : "عرض شهادتك"}
           >
             <Award className="w-4 h-4 ml-1" />
             {certificateIssued ? "شهادتك" : "احصل على شهادتك"}

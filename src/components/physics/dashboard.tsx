@@ -46,6 +46,7 @@ import { formatTime } from "@/lib/use-progress";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { AppHeader } from "./app-header";
 import { AppFooter } from "./app-footer";
+import { CertificateInstructions } from "./certificate-instructions";
 import {
   computeAchievementPoints,
   ACHIEVEMENTS,
@@ -72,6 +73,7 @@ export function Dashboard({
   pendingUnitId,
   onConsumedPendingUnit,
 }: Props) {
+  const [showCertInstructions, setShowCertInstructions] = useState(false);
   const totalLessons = CURRICULUM_STATS.totalLessons;
   const completedCount = profile.completedLessons.length;
   const completionPct =
@@ -126,6 +128,7 @@ export function Dashboard({
         onShowCertificate={onShowCertificate}
         onReset={onReset}
         onLogout={onLogout}
+        onShowCertInstructions={() => setShowCertInstructions(true)}
       />
 
       <main className="max-w-6xl mx-auto px-4 py-6 md:py-10 pb-16 space-y-6 md:space-y-8">
@@ -285,12 +288,15 @@ export function Dashboard({
                       {certificateIssued ? "عرض" : "إصدار"}
                     </Button>
                   ) : (
-                    <div className="w-full">
-                      <div className="text-xs text-slate-500 mb-1 text-center">
-                        أكمل {Math.max(0, 70 - completionPct)}% إضافي
+                    <button
+                      onClick={() => setShowCertInstructions(true)}
+                      className="w-full"
+                    >
+                      <div className="text-xs text-slate-500 mb-1 text-center hover:text-amber-600 transition-colors">
+                        أكمل {Math.max(0, 70 - completionPct)}% إضافي — اضغط للتعليمات
                       </div>
                       <Progress value={Math.min(completionPct, 70)} className="h-2" />
-                    </div>
+                    </button>
                   )}
                 </div>
               </CardContent>
@@ -415,6 +421,15 @@ export function Dashboard({
         </div>
 
       </main>
+
+      {/* تعليمات الشهادة */}
+      <CertificateInstructions
+        open={showCertInstructions}
+        onOpenChange={setShowCertInstructions}
+        completionPct={completionPct}
+        completedLessons={completedCount}
+        totalLessons={totalLessons}
+      />
 
       {/* التذييل المختصر الثابت */}
       <AppFooter variant="full" />
