@@ -53,6 +53,7 @@ import type { Lesson, Unit } from "@/lib/physics";
 import { ALL_LESSON_IDS, findLesson } from "@/lib/physics";
 import { TimeTracker } from "./time-tracker";
 import { Math } from "./math";
+import { SmartMath } from "./smart-math";
 import { formatTime } from "@/lib/use-progress";
 
 type Props = {
@@ -190,7 +191,7 @@ export function LessonView({
                   <div className="flex items-center gap-1 flex-wrap">
                     {c.symbol && (
                       <Badge className="bg-purple-600 text-white border-0">
-                        <Math math={c.symbol} />
+                        <SmartMath text={c.symbol} />
                       </Badge>
                     )}
                     {c.unit && (
@@ -198,7 +199,7 @@ export function LessonView({
                         variant="outline"
                         className="border-purple-300 dark:border-purple-800 text-purple-700 dark:text-purple-300"
                       >
-                        <Math math={c.unit} />
+                        <SmartMath text={c.unit} />
                       </Badge>
                     )}
                   </div>
@@ -209,7 +210,7 @@ export function LessonView({
                       القيمة:{" "}
                     </span>
                     <span className="text-amber-900 dark:text-amber-200">
-                      <Math math={c.value} />
+                      <SmartMath text={c.value} />
                     </span>
                   </div>
                 )}
