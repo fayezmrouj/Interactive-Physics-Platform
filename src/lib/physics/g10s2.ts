@@ -29,14 +29,14 @@ const G10S2_U4_L1: Lesson = {
       term: "كتلة الأرض",
       symbol: "M_E",
       unit: "kg",
-      value: "M_E = 5.97 \times 10^{24} \, \text{kg}",
+      value: "M_E = 5.97 \\times 10^{24} \\, \\text{kg}",
       definition: "كتلة كوكب الأرض.",
     },
     {
       term: "نصف قطر الأرض",
       symbol: "R_E",
       unit: "m",
-      value: "R_E = 6.37 \times 10^{6} \, \text{m}",
+      value: "R_E = 6.37 \\times 10^{6} \\, \\text{m}",
       definition: "نصف قطر الأرض عند خط الاستواء.",
     },
     {
