@@ -8,7 +8,6 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Search,
   BookA,
@@ -23,6 +22,7 @@ import {
   Clock,
   Database,
   Users,
+  X,
 } from "lucide-react";
 import { SmartSearch } from "./smart-search";
 import { Dictionary } from "./dictionary-view";
@@ -233,16 +233,17 @@ export function FeaturesDrawer({
       >
         <SheetContent
           side="right"
-          className="w-full sm:max-w-2xl p-0 flex flex-col"
+          className="w-full sm:max-w-2xl p-0 flex flex-col h-[100dvh]"
           dir="rtl"
         >
-          <SheetHeader className="border-b border-slate-200 dark:border-slate-800 p-4">
+          {/* الرأس مع زر إغلاق واضح */}
+          <SheetHeader className="border-b border-slate-200 dark:border-slate-800 p-4 flex-row items-center justify-between space-y-0">
             <SheetTitle className="text-right">
               {activeFeatureData ? (
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setActiveFeature(null)}
-                    className="text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+                    className="text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 px-2 py-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
                   >
                     ← رجوع
                   </button>
@@ -252,10 +253,28 @@ export function FeaturesDrawer({
                 <span>كل الميزات الإضافية</span>
               )}
             </SheetTitle>
+            <button
+              onClick={() => {
+                setOpen(false);
+                setActiveFeature(null);
+              }}
+              className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-rose-100 dark:hover:bg-rose-950/40 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 transition-colors shrink-0"
+              aria-label="إغلاق"
+              title="إغلاق"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </SheetHeader>
 
-          <ScrollArea className="flex-1">
-            <div className="p-4">
+          {/* المحتوى قابل للتمرير العمودي */}
+          <div
+            className="flex-1 overflow-y-auto overflow-x-hidden"
+            style={{
+              scrollbarWidth: "thin",
+              WebkitOverflowScrolling: "touch",
+            }}
+          >
+            <div className="p-4 pb-20">
               {!activeFeature ? (
                 <div className="grid sm:grid-cols-2 gap-3">
                   {FEATURES.map((f) => (
@@ -300,7 +319,7 @@ export function FeaturesDrawer({
                 </div>
               )}
             </div>
-          </ScrollArea>
+          </div>
         </SheetContent>
       </Sheet>
     </>
