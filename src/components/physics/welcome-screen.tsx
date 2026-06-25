@@ -613,7 +613,7 @@ export function WelcomeScreen({
       </div>
 
       {/* ============ التذييل الثابت ============ */}
-      <AppFooter variant="full" dark />
+      <AppFooter variant="full" />
 
       {/* Dialog كيف يعمل؟ */}
       <HowItWorks open={showHowItWorks} onOpenChange={setShowHowItWorks} />
