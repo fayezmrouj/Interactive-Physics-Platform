@@ -13,7 +13,8 @@ import {
   RotateCcw,
   Inbox,
 } from "lucide-react";
-import { PRACTICE_QUESTIONS } from "@/lib/physics/practice-questions";
+import { PRACTICE_QUESTIONS } from "@/lib/physics/practice-questions"
+import { SmartMath } from "./smart-math";
 import type { SpacedRepetitionItem } from "@/lib/use-progress";
 import { useState } from "react";
 
@@ -146,7 +147,7 @@ export function SpacedRepetition({ items, onAnswer }: Props) {
             </div>
 
             <p className="text-base font-semibold text-slate-800 dark:text-slate-100">
-              {current.question!.question}
+              <SmartMath text={current.question!.question} />
             </p>
 
             {current.question!.type === "numeric" && (
@@ -230,9 +231,9 @@ export function SpacedRepetition({ items, onAnswer }: Props) {
             {submitted[current.question!.id] && (
               <div className="p-3 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-lg">
                 <div className="text-xs font-bold text-emerald-700 dark:text-emerald-400 mb-1">
-                  الإجابة النموذجية: {current.question!.answer}
+                  الإجابة النموذجية: <SmartMath text={current.question!.answer} />
                 </div>
-                <p className="text-sm text-slate-700 dark:text-slate-200">{current.question!.explanation}</p>
+                <p className="text-sm text-slate-700 dark:text-slate-200"><SmartMath text={current.question!.explanation} /></p>
               </div>
             )}
 

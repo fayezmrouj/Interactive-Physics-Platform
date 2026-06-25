@@ -19,6 +19,7 @@ import {
   Trophy,
 } from "lucide-react";
 import { PRACTICE_QUESTIONS, type PracticeQuestion } from "@/lib/physics/practice-questions";
+import { SmartMath } from "./smart-math";
 
 type Difficulty = "all" | "easy" | "medium" | "hard";
 type Mode = "config" | "playing" | "review";
@@ -246,7 +247,7 @@ export function PracticeMode({
         <Card>
           <CardContent className="p-5">
             <p className="text-base md:text-lg font-semibold text-slate-800 dark:text-slate-100 mb-4 leading-relaxed">
-              {current.question}
+              <SmartMath text={current.question} />
             </p>
 
             {current.type === "numeric" && (
@@ -449,17 +450,17 @@ export function PracticeMode({
                 )}
                 <div className="flex-1">
                   <p className="text-sm font-medium text-slate-800 dark:text-slate-100 mb-1">
-                    {i + 1}. {q.question}
+                    {i + 1}. <SmartMath text={q.question} />
                   </p>
                   <p className="text-xs text-slate-600 dark:text-slate-300">
-                    إجابتك: <span className={isCorrect ? "text-emerald-700 font-bold" : "text-rose-700 font-bold"}>{userAns || "—"}</span>
+                    إجابتك: <span className={isCorrect ? "text-emerald-700 font-bold" : "text-rose-700 font-bold"}><SmartMath text={userAns || "—"} /></span>
                   </p>
                   {!isCorrect && (
                     <p className="text-xs text-slate-600 dark:text-slate-300">
-                      الصواب: <span className="text-emerald-700 font-bold">{q.answer}</span>
+                      الصواب: <span className="text-emerald-700 font-bold"><SmartMath text={q.answer} /></span>
                     </p>
                   )}
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{q.explanation}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1"><SmartMath text={q.explanation} /></p>
                 </div>
               </div>
             </div>

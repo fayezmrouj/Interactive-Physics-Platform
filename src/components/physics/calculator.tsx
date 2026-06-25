@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import { Calculator, RotateCcw, Lightbulb } from "lucide-react";
 import { Math } from "./math";
+import { SmartMath } from "./smart-math";
 
 // تعريف القوانين القابلة للحساب
 type SolverField = {
@@ -523,11 +524,11 @@ export function PhysicsCalculator() {
                 {field.label}
                 {field.unit && (
                   <span className="text-xs text-slate-500 mr-1">
-                    ({field.unit})
+                    (<SmartMath text={field.unit} />)
                   </span>
                 )}
                 <span className="text-xs text-slate-400 mr-2">
-                  {" "}← {field.symbol}
+                  {" "}← <SmartMath text={field.symbol} />
                 </span>
               </Label>
               <Input
@@ -573,11 +574,11 @@ export function PhysicsCalculator() {
                 النتيجة
               </div>
               <div className="text-2xl font-extrabold text-emerald-700 dark:text-emerald-300">
-                {unknownField.label} = {result.toFixed(4)}
+                {unknownField.label} = <span dir="ltr">{result.toFixed(4)}</span>
                 {unknownField.unit && (
                   <span className="text-base font-medium mr-1">
                     {" "}
-                    {unknownField.unit}
+                    <SmartMath text={unknownField.unit} />
                   </span>
                 )}
               </div>

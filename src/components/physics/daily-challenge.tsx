@@ -18,7 +18,8 @@ import {
 import {
   getDailyChallenge,
   getTodayKey,
-} from "@/lib/physics/practice-questions";
+} from "@/lib/physics/practice-questions"
+import { SmartMath } from "./smart-math";
 
 type Props = {
   completedDates: string[];
@@ -107,12 +108,12 @@ export function DailyChallenge({ completedDates, streak, onComplete }: Props) {
             </p>
             <div className="mt-4 p-3 bg-white dark:bg-slate-800 rounded-lg text-right">
               <p className="text-sm font-medium text-slate-800 dark:text-slate-100 mb-2">
-                {question.question}
+                <SmartMath text={question.question} />
               </p>
               <p className="text-xs text-slate-500 dark:text-slate-400">
                 الإجابة: <span className="font-bold text-emerald-700 dark:text-emerald-400">{question.answer}</span>
               </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{question.explanation}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1"><SmartMath text={question.explanation} /></p>
             </div>
           </CardContent>
         </Card>
@@ -134,7 +135,7 @@ export function DailyChallenge({ completedDates, streak, onComplete }: Props) {
             </div>
 
             <p className="text-base font-semibold text-slate-800 dark:text-slate-100 leading-relaxed">
-              {question.question}
+              <SmartMath text={question.question} />
             </p>
 
             {question.type === "numeric" && (
@@ -218,9 +219,9 @@ export function DailyChallenge({ completedDates, streak, onComplete }: Props) {
             {showSolution && (
               <div className="p-3 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-lg">
                 <div className="text-xs font-bold text-emerald-700 dark:text-emerald-400 mb-1">
-                  الإجابة النموذجية: {question.answer}
+                  الإجابة النموذجية: <SmartMath text={question.answer} />
                 </div>
-                <p className="text-sm text-slate-700 dark:text-slate-200">{question.explanation}</p>
+                <p className="text-sm text-slate-700 dark:text-slate-200"><SmartMath text={question.explanation} /></p>
               </div>
             )}
 
