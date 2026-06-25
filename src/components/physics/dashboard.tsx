@@ -45,6 +45,7 @@ import type { UserProfile } from "@/lib/use-progress";
 import { formatTime } from "@/lib/use-progress";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { AppHeader } from "./app-header";
+import { AppFooter } from "./app-footer";
 import {
   computeAchievementPoints,
   ACHIEVEMENTS,
@@ -127,7 +128,7 @@ export function Dashboard({
         onLogout={onLogout}
       />
 
-      <main className="max-w-6xl mx-auto px-4 py-6 md:py-10 space-y-6 md:space-y-8">
+      <main className="max-w-6xl mx-auto px-4 py-6 md:py-10 pb-16 space-y-6 md:space-y-8">
         {/* بطاقة التقدم العام */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -413,10 +414,10 @@ export function Dashboard({
           ))}
         </div>
 
-        <footer className="text-center py-6 text-xs text-slate-400 dark:text-slate-500">
-          منصة الفيزياء التفاعلية • مبنية على كتب الفيزياء الرسمية للصفين التاسع والعاشر • {CURRICULUM_STATS.totalUnits} وحدات • {totalLessons} درسًا
-        </footer>
       </main>
+
+      {/* التذييل المختصر الثابت */}
+      <AppFooter />
     </div>
   );
 }

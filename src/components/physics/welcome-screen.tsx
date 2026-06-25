@@ -34,6 +34,7 @@ import { HowItWorks } from "./how-it-works";
 import { UnitsPreview } from "./units-preview";
 import { DailyChallengeCountdown } from "./daily-countdown";
 import { ParticlesBackground, AtomAnimation } from "./particles";
+import { AppFooter } from "./app-footer";
 
 type Props = {
   onStart: (name: string, grade: "9" | "10" | "all", selectedUnitId?: string | null) => void;
@@ -387,7 +388,7 @@ export function WelcomeScreen({
       </header>
 
       {/* ============ المحتوى الرئيسي ============ */}
-      <div className="relative z-10 flex-1 flex items-center justify-center p-4 md:p-8">
+      <div className="relative z-10 flex-1 flex items-center justify-center p-4 md:p-8 pb-16">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -611,17 +612,8 @@ export function WelcomeScreen({
         </motion.div>
       </div>
 
-      {/* ============ التذييل (الأصلي) ============ */}
-      <footer className="relative z-20 px-4 md:px-8 py-4 md:py-5 flex flex-col sm:flex-row items-center justify-center gap-2 border-t border-white/10">
-        <div className="flex items-center gap-2 text-white/70 text-xs md:text-sm flex-wrap justify-center">
-          <Atom className="w-4 h-4 text-cyan-400" />
-          <span>© 2026 منصة الفيزياء التفاعلية</span>
-          <span className="hidden sm:inline">•</span>
-          <span className="hidden sm:inline">جميع الحقوق محفوظة</span>
-          <span className="hidden sm:inline">•</span>
-          <span className="text-white/90 font-semibold">تصميم وإعداد المعلم: فايز مروج</span>
-        </div>
-      </footer>
+      {/* ============ التذييل الثابت ============ */}
+      <AppFooter />
 
       {/* Dialog كيف يعمل؟ */}
       <HowItWorks open={showHowItWorks} onOpenChange={setShowHowItWorks} />
