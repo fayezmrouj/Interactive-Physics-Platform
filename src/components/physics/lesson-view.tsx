@@ -433,40 +433,39 @@ function LessonHeader({
   const liveTime = lessonTimeSpent;
 
   return (
-    <header className={`bg-gradient-to-l ${unit.color} text-white shadow-lg`}>
-      <div className="max-w-4xl mx-auto px-4 py-4 md:py-6">
-        <button
-          onClick={onBack}
-          className="inline-flex items-center gap-2 text-white/85 hover:text-white text-sm mb-3 transition-colors"
-        >
-          <ArrowRight className="w-4 h-4" />
-          العودة للوحة التحكم
-        </button>
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 mb-1 flex-wrap">
-              <span className="text-xs md:text-sm bg-white/20 backdrop-blur-sm px-2 py-0.5 rounded-full">
-                {unit.grade} • {unit.semester} • {unit.title}
-              </span>
-              {isCompleted && (
-                <Badge className="bg-emerald-400 text-emerald-950 border-0 gap-1">
-                  <CircleCheckBig className="w-3 h-3" />
-                  مكتمل
-                </Badge>
-              )}
-              {lessonTimeSpent > 0 && (
-                <Badge className="bg-white/20 backdrop-blur-sm text-white border-0 gap-1">
-                  <Clock className="w-3 h-3" />
-                  {formatTime(liveTime)}
-                </Badge>
-              )}
+    <header className={`sticky top-0 z-30 bg-gradient-to-l ${unit.color} text-white shadow-lg backdrop-blur-sm`}>
+      <div className="max-w-4xl mx-auto px-4 py-3 md:py-4">
+        <div className="flex items-center justify-between gap-3">
+          {/* يمين: زر العودة + معلومات الدرس */}
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            <button
+              onClick={onBack}
+              className="inline-flex items-center gap-1 text-white/85 hover:text-white text-sm transition-colors shrink-0 px-2 py-1 rounded-lg hover:bg-white/10"
+              title="العودة للوحة التحكم"
+            >
+              <ArrowRight className="w-4 h-4" />
+              <span className="hidden sm:inline">العودة</span>
+            </button>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-[10px] md:text-xs bg-white/20 backdrop-blur-sm px-2 py-0.5 rounded-full whitespace-nowrap">
+                  {unit.grade} • {unit.title}
+                </span>
+                {isCompleted && (
+                  <Badge className="bg-emerald-400 text-emerald-950 border-0 gap-1 text-[10px]">
+                    <CircleCheckBig className="w-3 h-3" />
+                    مكتمل
+                  </Badge>
+                )}
+                {lessonTimeSpent > 0 && (
+                  <Badge className="bg-white/20 backdrop-blur-sm text-white border-0 gap-1 text-[10px]">
+                    <Clock className="w-3 h-3" />
+                    {formatTime(liveTime)}
+                  </Badge>
+                )}
+              </div>
+              <h1 className="text-base md:text-xl font-bold truncate mt-0.5">{lesson.title}</h1>
             </div>
-            <h1 className="text-xl md:text-3xl font-bold">{lesson.title}</h1>
-            {lesson.englishTitle && (
-              <p className="text-xs md:text-sm text-white/70 mt-1">
-                {lesson.englishTitle}
-              </p>
-            )}
           </div>
         </div>
       </div>
