@@ -238,9 +238,9 @@ export function FeaturesDrawer({
           dir="rtl"
           style={{ paddingTop: "env(safe-area-inset-top)" }}
         >
-          {/* الرأس: رجوع (يمين) + العنوان (وسط) + إغلاق (يسار) */}
+          {/* الرأس: رجوع (يسار) + العنوان (وسط) + X افتراضي (يمين) */}
           <SheetHeader className="border-b border-slate-200 dark:border-slate-800 p-4 flex-row items-center justify-between space-y-0 gap-3">
-            {/* يمين: زر رجوع (يظهر فقط داخل ميزة محددة) */}
+            {/* يسار: زر رجوع (يظهر فقط داخل ميزة محددة) */}
             <div className="shrink-0">
               {activeFeatureData ? (
                 <button
@@ -260,20 +260,8 @@ export function FeaturesDrawer({
               {activeFeatureData ? activeFeatureData.label : "كل الميزات الإضافية"}
             </SheetTitle>
 
-            {/* يسار: زر الإغلاق الأحمر */}
-            <div className="shrink-0">
-              <button
-                onClick={() => {
-                  setOpen(false);
-                  setActiveFeature(null);
-                }}
-                className="w-10 h-10 rounded-full bg-rose-500 hover:bg-rose-600 active:bg-rose-700 flex items-center justify-center text-white shadow-md transition-colors"
-                aria-label="إغلاق"
-                title="إغلاق"
-              >
-                <X className="w-5 h-5" strokeWidth={3} />
-              </button>
-            </div>
+            {/* يمين: زر X الافتراضي (مُنسّق عبر CSS كدائرة حمراء) */}
+            <div className="w-10 shrink-0" />
           </SheetHeader>
 
           {/* المحتوى قابل للتمرير العمودي */}

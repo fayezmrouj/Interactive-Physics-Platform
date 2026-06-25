@@ -170,14 +170,34 @@
   }
 }
 
-/* إخفاء زر الإغلاق الافتراضي في Sheet (استبدلناه بزر أحمر مخصص) */
-[data-slot="sheet-close"],
-.SheetClose,
-button[data-slot="sheet-close"] {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
+/* زر الإغلاق الافتراضي في Sheet - دائرة حمراء بارزة على اليمين البصري */
+[data-slot="sheet-content"] > button[class*="absolute"] {
+  background-color: #f43f5e !important;
+  color: white !important;
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 9999px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  opacity: 1 !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+  z-index: 50 !important;
+  /* في RTL، اليمين البصري = right في CSS */
+  right: 1rem !important;
+  left: auto !important;
+  /* احترام safe area للـ Dynamic Island */
+  top: calc(1rem + env(safe-area-inset-top)) !important;
+}
+
+[data-slot="sheet-content"] > button[class*="absolute"]:hover {
+  background-color: #e11d48 !important;
+}
+
+[data-slot="sheet-content"] > button[class*="absolute"] svg {
+  stroke-width: 3 !important;
+  width: 20px !important;
+  height: 20px !important;
 }
 
 /* تنسيق الطباعة للشهادة */
