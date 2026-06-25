@@ -19,7 +19,36 @@ export function textToKaTeX(text: string): string {
     .replace(/₈/g, "_{8}")
     .replace(/₉/g, "_{9}");
 
-  // 1. الرموز اليونانية
+  // 1. الرموز اليونانية مع الحدود السفلية (معالجة قبل الانفصال)
+  // مثال: μ_k → \mu_{k}, θ_c → \theta_{c}
+  result = result
+    .replace(/μ_([A-Za-z0-9]+)/g, "\\mu_{$1}")
+    .replace(/θ_([A-Za-z0-9]+)/g, "\\theta_{$1}")
+    .replace(/ρ_([A-Za-z0-9]+)/g, "\\rho_{$1}")
+    .replace(/λ_([A-Za-z0-9]+)/g, "\\lambda_{$1}")
+    .replace(/ω_([A-Za-z0-9]+)/g, "\\omega_{$1}")
+    .replace(/α_([A-Za-z0-9]+)/g, "\\alpha_{$1}")
+    .replace(/β_([A-Za-z0-9]+)/g, "\\beta_{$1}")
+    .replace(/γ_([A-Za-z0-9]+)/g, "\\gamma_{$1}")
+    .replace(/Δ_([A-Za-z0-9]+)/g, "\\Delta_{$1}")
+    .replace(/Σ_([A-Za-z0-9]+)/g, "\\Sigma_{$1}");
+
+  // 1b. الرموز اليونانية المتبقية (بدون حدود سفلية)
+  // لكن أولاً عالج الرموز اليونانية متبوعة بـ _{ (من تحويل Unicode subscripts)
+  result = result
+    .replace(/Δ_\{/g, "\\Delta_{")
+    .replace(/μ_\{/g, "\\mu_{")
+    .replace(/ρ_\{/g, "\\rho_{")
+    .replace(/λ_\{/g, "\\lambda_{")
+    .replace(/θ_\{/g, "\\theta_{")
+    .replace(/ω_\{/g, "\\omega_{")
+    .replace(/π_\{/g, "\\pi_{")
+    .replace(/Σ_\{/g, "\\Sigma_{")
+    .replace(/α_\{/g, "\\alpha_{")
+    .replace(/β_\{/g, "\\beta_{")
+    .replace(/γ_\{/g, "\\gamma_{");
+
+  // 1c. الرموز اليونانية المتبقية (بدون أي حدود)
   result = result
     .replace(/Δ/g, "\\Delta ")
     .replace(/μ/g, "\\mu ")
