@@ -170,9 +170,8 @@
   }
 }
 
-/* إخفاء زر الإغلاق الافتراضي في Dialog (استبدلناه بدائرة مخصصة) */
-[data-slot="dialog-content"] > button[class*="absolute"],
-[data-slot="dialog-close"] {
+/* إخفاء زر الإغلاق الافتراضي في Dialog فقط (الذي يحتوي sr-only) */
+[data-slot="dialog-content"] > button[class*="absolute"]:has(span.sr-only) {
   display: none !important;
 }
 
