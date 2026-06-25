@@ -12,16 +12,22 @@ import { textToKaTeX } from "@/lib/physics/formula-converter";
  */
 export function SmartMath({ text }: { text: string }) {
   const hasArabic = /[\u0600-\u06FF]/.test(text);
-  const hasMathSymbols = /[=+\-·/√^²³⁴⁵⁻¹²³⁴⁵⁶⁷⁸⁹₀₁₂₃₄₅₆₇₈₉ΔμρλωθπΣ∝≅≈≠≤≥±→×]/.test(text);
+  const hasLatinOrGreek = /[A-Za-z½μρλθωΣΔαβγπ]/.test(text);
+  const hasMathSymbols = /[+\-·/√^²³⁴⁵⁻¹²³⁴⁵⁶⁷⁸⁹₀₁₂₃₄₅₆₇₈₉ΔμρλωθπΣ∝≅≈≠≤≥±→×]/.test(text);
   const hasLatinMath = /[A-Za-z].*[/_^²³]|√|·|×/.test(text);
+  // `=` وحدها مع عربية = "يساوي" عربية، ليست معادلة
+  const hasOnlyEqualsAndArabic = hasArabic && /[=]/.test(text) && !hasLatinOrGreek && !hasMathSymbols && !hasLatinMath;
 
-  // حالة 1: نص عربي خالص
-  if (hasArabic && !hasMathSymbols && !hasLatinMath) {
+  // حالة 1: نص عربي خالص (أو عربي مع = فقط = "يساوي")
+  if (hasArabic && !hasMathSymbols && !hasLatinMath && !hasOnlyEqualsAndArabic) {
+    return <span dir="rtl">{text}</span>;
+  }
+  if (hasOnlyEqualsAndArabic) {
     return <span dir="rtl">{text}</span>;
   }
 
   // حالة 2: معادلة خالصة بدون عربية
-  if (!hasArabic && (hasMathSymbols || hasLatinMath || /^[A-Za-z](_|\^)/.test(text))) {
+  if (!hasArabic && (hasMathSymbols || /[=]/.test(text) || hasLatinMath || /^[A-Za-z](_|\^)/.test(text))) {
     return (
       <span dir="ltr">
         <InlineMath math={textToKaTeX(text)} errorColor="#cc0000" />
@@ -30,7 +36,8 @@ export function SmartMath({ text }: { text: string }) {
   }
 
   // حالة 3: نص مختلط - فصل المعادلات في سطور منفصلة
-  if (hasArabic && (hasMathSymbols || hasLatinMath)) {
+  // لكن فقط إذا كان هناك حروف لاتينية/يونانية (معادلة حقيقية)
+  if (hasArabic && hasLatinOrGreek && (hasMathSymbols || /[=]/.test(text) || hasLatinMath)) {
     return <MixedText text={text} />;
   }
 
