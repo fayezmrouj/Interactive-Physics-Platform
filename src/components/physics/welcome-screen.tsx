@@ -412,7 +412,7 @@ export function WelcomeScreen({
                 <AtomAnimation size={80} />
               </motion.div>
 
-              <h1 className="text-3xl md:text-4xl font-extrabold bg-gradient-to-l from-indigo-700 via-blue-700 to-purple-700 bg-clip-text text-transparent mb-2">
+              <h1 className="text-3xl md:text-4xl font-extrabold bg-gradient-to-l from-indigo-500 via-blue-400 to-purple-400 dark:from-indigo-300 dark:via-blue-200 dark:to-purple-300 bg-clip-text text-transparent mb-2">
                 منصة الفيزياء التفاعلية
               </h1>
               <p className="text-slate-600 dark:text-slate-300 text-sm md:text-base max-w-md mx-auto leading-relaxed">
