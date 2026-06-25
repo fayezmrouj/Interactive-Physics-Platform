@@ -417,7 +417,7 @@ export function Dashboard({
       </main>
 
       {/* التذييل المختصر الثابت */}
-      <AppFooter />
+      <AppFooter variant="full" />
     </div>
   );
 }
