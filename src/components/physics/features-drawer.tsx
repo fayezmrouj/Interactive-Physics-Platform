@@ -238,14 +238,14 @@ export function FeaturesDrawer({
           dir="rtl"
           style={{ paddingTop: "env(safe-area-inset-top)" }}
         >
-          {/* الرأس: رجوع (يسار) + العنوان (وسط) + X افتراضي (يمين) */}
+          {/* الرأس: X (يسار) + العنوان (وسط) + رجوع (يمين) */}
           <SheetHeader className="border-b border-slate-200 dark:border-slate-800 p-4 flex-row items-center justify-between space-y-0 gap-3">
-            {/* يسار: زر رجوع (يظهر فقط داخل ميزة محددة) */}
-            <div className="shrink-0">
+            {/* يمين: زر رجوع (يظهر فقط داخل ميزة محددة) */}
+            <div className="shrink-0 order-3">
               {activeFeatureData ? (
                 <button
                   onClick={() => setActiveFeature(null)}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-indigo-100 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-200 dark:hover:bg-indigo-950/60 text-sm font-medium transition-colors"
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-indigo-600 dark:bg-indigo-500 text-white hover:bg-indigo-700 dark:hover:bg-indigo-600 text-sm font-bold transition-colors shadow-sm"
                 >
                   <ArrowRight className="w-4 h-4" />
                   رجوع
