@@ -45,18 +45,16 @@ export function DailyChallengeCountdown({ completedToday, streak }: Props) {
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`flex flex-col sm:flex-row items-center justify-center gap-3 px-4 py-2.5 rounded-xl border ${
+      className={`flex flex-col sm:flex-row items-center justify-center gap-3 px-4 py-3 rounded-xl border-2 ${
         completedToday
-          ? "bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800"
-          : "bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800"
+          ? "bg-emerald-100 border-emerald-300"
+          : "bg-amber-100 border-amber-300"
       }`}
     >
       <div className="flex items-center gap-2">
         <div
-          className={`w-8 h-8 rounded-full flex items-center justify-center ${
-            completedToday
-              ? "bg-emerald-500 text-white"
-              : "bg-amber-500 text-white"
+          className={`w-8 h-8 rounded-full flex items-center justify-center text-white shadow-sm ${
+            completedToday ? "bg-emerald-600" : "bg-amber-600"
           }`}
         >
           <Calendar className="w-4 h-4" />
@@ -64,55 +62,49 @@ export function DailyChallengeCountdown({ completedToday, streak }: Props) {
         <div className="text-right">
           <div
             className={`text-xs font-bold ${
-              completedToday
-                ? "text-emerald-700 dark:text-emerald-300"
-                : "text-amber-700 dark:text-amber-300"
+              completedToday ? "text-emerald-800" : "text-amber-800"
             }`}
           >
             {completedToday
               ? "✓ أكملت تحدي اليوم!"
               : "⚡ تحدّ يومي جديد ينتظرك"}
           </div>
-          <div className="text-[10px] text-slate-500 dark:text-slate-400">
+          <div className={`text-[10px] font-medium ${completedToday ? "text-emerald-700" : "text-amber-700"}`}>
             🔥 السلسلة الحالية: {streak} يوم متتالي
           </div>
         </div>
       </div>
 
       {/* الفاصل */}
-      <div className="hidden sm:block w-px h-8 bg-slate-200 dark:bg-slate-700" />
+      <div className="hidden sm:block w-px h-8 bg-slate-300" />
 
       {/* العدّاد */}
       <div className="flex items-center gap-1.5">
         <Clock
-          className={`w-4 h-4 ${
-            completedToday
-              ? "text-emerald-500"
-              : "text-amber-500 animate-pulse"
-          }`}
+          className={`w-4 h-4 ${completedToday ? "text-emerald-600" : "text-amber-600 animate-pulse"}`}
         />
-        <div className="text-xs text-slate-600 dark:text-slate-300">
+        <div className={`text-xs font-medium ${completedToday ? "text-emerald-800" : "text-amber-800"}`}>
           {completedToday ? "التحدّي القادم بعد" : "ينتهي التحدي الحالي بعد"}
         </div>
         <div className="flex items-center gap-1 font-mono font-bold text-sm tabular-nums">
-          <TimeBox value={pad(timeLeft.hours)} unit="س" />
+          <TimeBox value={pad(timeLeft.hours)} unit="س" completedToday={completedToday} />
           <span className="text-slate-400">:</span>
-          <TimeBox value={pad(timeLeft.minutes)} unit="د" />
+          <TimeBox value={pad(timeLeft.minutes)} unit="د" completedToday={completedToday} />
           <span className="text-slate-400">:</span>
-          <TimeBox value={pad(timeLeft.seconds)} unit="ث" />
+          <TimeBox value={pad(timeLeft.seconds)} unit="ث" completedToday={completedToday} />
         </div>
       </div>
     </motion.div>
   );
 }
 
-function TimeBox({ value, unit }: { value: string; unit: string }) {
+function TimeBox({ value, unit, completedToday }: { value: string; unit: string; completedToday: boolean }) {
   return (
     <div className="flex items-baseline gap-0.5">
-      <span className="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-slate-800 dark:text-slate-100">
+      <span className={`px-1.5 py-0.5 rounded font-bold ${completedToday ? "bg-emerald-600 text-white" : "bg-amber-600 text-white"}`}>
         {value}
       </span>
-      <span className="text-[9px] text-slate-500 dark:text-slate-400">
+      <span className={`text-[9px] font-medium ${completedToday ? "text-emerald-700" : "text-amber-700"}`}>
         {unit}
       </span>
     </div>

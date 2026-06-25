@@ -253,10 +253,10 @@ function GradeSelector({
             key={opt.id}
             type="button"
             onClick={() => onChange(opt.id)}
-            className={`p-2.5 rounded-lg border text-sm font-medium transition-all ${
+            className={`p-2.5 rounded-lg border text-sm font-bold transition-all ${
               value === opt.id
-                ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-950/30 text-indigo-700 dark:text-indigo-300 ring-2 ring-indigo-200 dark:ring-indigo-800"
-                : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:border-indigo-300"
+                ? "border-indigo-400 bg-indigo-600 text-white ring-2 ring-indigo-300/50 shadow-md"
+                : "border-white/20 bg-white/10 text-white/90 hover:bg-white/20 hover:border-white/40"
             }`}
           >
             <div className="text-lg mb-0.5">{opt.emoji}</div>
