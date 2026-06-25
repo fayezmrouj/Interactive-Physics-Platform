@@ -76,7 +76,7 @@ export function SmartSearch({ open, onOpenChange, onNavigateLesson }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl p-0 gap-0 overflow-hidden" dir="rtl">
+      <DialogContent className="max-w-2xl p-0 gap-0 overflow-hidden pt-12" dir="rtl">
         <DialogHeader className="sr-only">
           <DialogTitle>البحث الذكي</DialogTitle>
         </DialogHeader>
