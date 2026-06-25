@@ -241,7 +241,7 @@ export function FeaturesDrawer({
           {/* الرأس: X (يسار) + العنوان (وسط) + رجوع (يمين) */}
           <SheetHeader className="border-b border-slate-200 dark:border-slate-800 p-4 flex-row items-center justify-between space-y-0 gap-3">
             {/* يمين: زر رجوع (يظهر فقط داخل ميزة محددة) */}
-            <div className="shrink-0 order-3">
+            <div className="shrink-0">
               {activeFeatureData ? (
                 <button
                   onClick={() => setActiveFeature(null)}
