@@ -659,9 +659,28 @@ function FeaturePreview({
   onClick?: () => void;
 }) {
   const [showInfo, setShowInfo] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // إغلاق البطاقة عند النقر خارجها
+  useEffect(() => {
+    if (!showInfo) return;
+    function handleClickOutside(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setShowInfo(false);
+      }
+    }
+    // أضف delay قصير لتجنب الإغلاق الفوري عند نفس النقر الذي فتحها
+    const timer = setTimeout(() => {
+      document.addEventListener("click", handleClickOutside);
+    }, 100);
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, [showInfo]);
 
   return (
-    <div className="relative">
+    <div className="relative" ref={containerRef}>
       <button
         onClick={() => {
           if (onClick) {
