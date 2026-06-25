@@ -9,7 +9,7 @@ import { textToKaTeX } from "@/lib/physics/formula-converter";
  * يتعامل مع 3 حالات:
  * 1. نص عربي خالص → نص عادي
  * 2. معادلة رياضية خالصة → KaTeX
- * 3. نص مختلط → فصل وعرض كل جزء بالطريقة المناسبة
+ * 3. نص مختلط → فصل المعادلات في سطور منفصلة
  */
 export function SmartMath({ text }: { text: string }) {
   const hasArabic = /[\u0600-\u06FF]/.test(text);
@@ -30,7 +30,7 @@ export function SmartMath({ text }: { text: string }) {
     );
   }
 
-  // حالة 3: نص مختلط (عربي + رياضي) - فصل الأجزاء
+  // حالة 3: نص مختلط (عربي + رياضي) - فصل المعادلات في سطور منفصلة
   if (hasArabic && (hasMathSymbols || hasLatinMath)) {
     return <MixedText text={text} />;
   }
@@ -41,53 +41,46 @@ export function SmartMath({ text }: { text: string }) {
 
 /**
  * يعرض نصًا مختلطًا (عربي + معادلات) بفصل ذكي
+ * المعادلات تُعرض في سطور منفصلة بـ KaTeX
+ * النص العربي يُعرض كنص عادي
  */
 function MixedText({ text }: { text: string }) {
   // قسّم النص إلى أجزاء: عربي / معادلة / عربي / معادلة...
-  // نطابق:
-  // 1. معادلات داخل أقواس: (F = m·a)
-  // 2. معادلات تحتوي على = ورموز رياضية
-  // 3. رموز رياضية مع وحدات: 9.8 m/s²
-  // 4. تعابير بسيطة: = 1.25 m/s²
-  // 5. معادلات برنولي: P + ½ρv² = ثابت
-
-  // النمط يطابق معادلات تبدأ بحرف لاتيني أو يوناني وتحتوي على = أو · أو /
-  // تتوقف عند الحرف العربي (الكلمات العربية في _{} تمت معالجتها مسبقًا بواسطة textToKaTeX)
-  const pattern = /(\([^)]*[=+\-·/√^²³⁴⁵ΔμρλωθπΣ×½][^)]*\)|[A-Za-z½ΔμρλωθπΣμθω][A-Za-z0-9_\^·×÷±≈≠≤≥=+\-/\s²³⁴⁵⁰¹²³⁴⁵⁶⁷⁸⁹√ΔμρλωθπΣ→.()½ρλ]*[A-Za-z0-9²³⁴⁵)\]]|[A-Za-z½μρλθωΣΔ]\s*[=+]\s*[A-Za-z½ρλμθωF][^.\u0600-\u06FF]*|\d+\.?\d*\s*[mkgNJPaHzW][/^²³⁴⁵·\d]*\d?)/g;
+  // نطابق معادلات تبدأ بحرف لاتيني أو يوناني وتحتوي على = أو · أو / أو ≤
+  const pattern = /(\([^)]*[=+\-·/√^²³⁴⁵ΔμρλωθπΣ×½][^)]*\)|[A-Za-z½ΔμρλωθπΣμθω][A-Za-z0-9_\^·×÷±≈≠≤≥=+\-/\s²³⁴⁵⁰¹²³⁴⁵⁶⁷⁸⁹√ΔμρλωθπΣ→.()½ρλ]*[A-Za-z0-9²³⁴⁵)\]]|[A-Za-z½μρλθωΣΔ]\s*[=+≤≥]\s*[A-Za-z½ρλμθωF][^.\u0600-\u06FF,]*|\d+\.?\d*\s*[mkgNJPaHzW][/^²³⁴⁵·\d]*\d?)/g;
 
   const parts: Array<{ type: "text" | "math"; content: string }> = [];
   let lastIndex = 0;
   let match;
 
   while ((match = pattern.exec(text)) !== null) {
-    // أضف النص العربي قبل المطابقة
     if (match.index > lastIndex) {
       parts.push({ type: "text", content: text.slice(lastIndex, match.index) });
     }
-    // أضف المعادلة
     parts.push({ type: "math", content: match[0].trim() });
     lastIndex = match.index + match[0].length;
   }
-  // أضف بقية النص
   if (lastIndex < text.length) {
     parts.push({ type: "text", content: text.slice(lastIndex) });
   }
 
-  // إذا لم نجد أي تقسيم، اعرض النص كاملًا
   if (parts.length === 0) {
     return <span dir="rtl">{text}</span>;
   }
 
+  // اعرض الأجزاء: النص العربي في نفس السطر، المعادلة في سطر منفصل
   return (
-    <span dir="rtl" className="inline-flex items-center gap-1 flex-wrap">
+    <span dir="rtl" className="inline">
       {parts.map((part, i) => {
         if (part.type === "math") {
+          // المعادلة في سطر منفصل
           return (
-            <span key={i} dir="ltr" className="inline-block">
+            <span key={i} dir="ltr" className="block my-1 px-3 py-1.5 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700 text-center">
               <InlineMath math={textToKaTeX(part.content)} errorColor="#cc0000" />
             </span>
           );
         }
+        // النص العربي عادي
         return <span key={i}>{part.content}</span>;
       })}
     </span>
