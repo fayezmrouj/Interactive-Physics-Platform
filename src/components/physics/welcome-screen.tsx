@@ -199,24 +199,24 @@ function DailyQuoteCard() {
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3 }}
-      className="bg-gradient-to-l from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30 border border-indigo-200 dark:border-indigo-800 rounded-xl p-3 md:p-4 mb-4"
+      className="bg-gradient-to-l from-indigo-950/80 via-blue-900/80 to-purple-950/80 border border-indigo-400/30 dark:border-indigo-400/20 rounded-xl p-3 md:p-4 mb-4 backdrop-blur-sm"
     >
       <div className="flex items-start gap-3">
         <div className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center shrink-0">
           <Quote className="w-4 h-4" />
         </div>
         <div className="flex-1">
-          <div className="text-xs text-indigo-600 dark:text-indigo-400 font-bold mb-1 flex items-center gap-1">
+          <div className="text-xs text-indigo-300 font-bold mb-1 flex items-center gap-1">
             <Sparkles className="w-3 h-3" />
             اقتباس اليوم
           </div>
-          <p className="text-sm md:text-base text-slate-700 dark:text-slate-200 italic leading-relaxed">
+          <p className="text-sm md:text-base text-white/90 italic leading-relaxed">
             «{quote.text}»
           </p>
-          <div className="text-xs text-slate-600 dark:text-slate-400 mt-1.5 font-semibold">
+          <div className="text-xs text-indigo-200 mt-1.5 font-semibold">
             — {quote.author}
             {quote.context && (
-              <span className="text-slate-500 dark:text-slate-500 font-normal">
+              <span className="text-white/60 font-normal">
                 {" "}
                 ({quote.context})
               </span>
@@ -537,7 +537,7 @@ export function WelcomeScreen({
                     variant="outline"
                     size="lg"
                     onClick={() => setShowHowItWorks(true)}
-                    className="h-12 md:h-14 px-4 border-indigo-300 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/30"
+                    className="h-12 md:h-14 px-4 border-2 border-indigo-500 dark:border-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-200 font-bold hover:bg-indigo-100 dark:hover:bg-indigo-900/50 hover:border-indigo-600 dark:hover:border-indigo-300"
                     title="شرح طريقة استخدام المنصة"
                   >
                     <HelpCircle className="w-5 h-5" />
