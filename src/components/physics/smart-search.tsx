@@ -9,8 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Search, BookOpen, Sigma, Wand2, ArrowLeft } from "lucide-react";
+import { Search, BookOpen, Sigma, Wand2, ArrowLeft, X } from "lucide-react";
 import { searchAll, type SearchResult } from "@/lib/physics/dictionary";
 
 type Props = {
@@ -82,7 +81,7 @@ export function SmartSearch({ open, onOpenChange, onNavigateLesson }: Props) {
           <DialogTitle>البحث الذكي</DialogTitle>
         </DialogHeader>
         <div className="flex items-center gap-3 p-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900">
-          <Search className="w-5 h-5 text-slate-500" />
+          <Search className="w-5 h-5 text-slate-500 shrink-0" />
           <Input
             ref={inputRef}
             value={query}
@@ -91,9 +90,25 @@ export function SmartSearch({ open, onOpenChange, onNavigateLesson }: Props) {
             placeholder="ابحث عن درس، مفهوم، أو قانون... (مثل: نيوتن، F=ma، الكثافة)"
             className="border-0 shadow-none focus-visible:ring-0 bg-transparent text-base"
           />
+          {query && (
+            <button
+              onClick={() => {
+                setQuery("");
+                inputRef.current?.focus();
+              }}
+              className="w-7 h-7 rounded-full bg-slate-200 dark:bg-slate-700 hover:bg-rose-100 dark:hover:bg-rose-950/40 flex items-center justify-center text-slate-500 hover:text-rose-600 transition-colors shrink-0"
+              aria-label="مسح البحث"
+              title="مسح"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
         </div>
 
-        <ScrollArea className="max-h-[60vh]">
+        <div
+          className="max-h-[60vh] overflow-y-auto overflow-x-hidden"
+          style={{ WebkitOverflowScrolling: "touch", scrollbarWidth: "thin" }}
+        >
           <div className="p-2">
             {query.trim() === "" ? (
               <div className="p-8 text-center text-slate-500 dark:text-slate-400">
@@ -180,7 +195,7 @@ export function SmartSearch({ open, onOpenChange, onNavigateLesson }: Props) {
               </>
             )}
           </div>
-        </ScrollArea>
+        </div>
       </DialogContent>
     </Dialog>
   );
