@@ -7,7 +7,7 @@ import { textToKaTeX } from "@/lib/physics/formula-converter";
 /**
  * مكوّن ذكي لعرض النص الرياضي
  * 1. نص عربي خالص → نص عادي
- * 2. معادلة خالصة → KaTeX inline-block مع displaystyle (لا يُكسر)
+ * 2. معادلة خالصة → InlineMath (نفس نهج مكوّن Math المستخدم في القوانين)
  * 3. نص مختلط → المعادلة في سطر منفصل تحت النص العربي
  */
 export function SmartMath({ text }: { text: string }) {
@@ -27,24 +27,18 @@ export function SmartMath({ text }: { text: string }) {
   }
 
   // حالة 2: معادلة خالصة بدون عربية
-  // نستخدم InlineMath مع displaystyle داخل inline-block لمنع الكسر
+  // نستخدم نفس نهج مكوّن Math: InlineMath داخل span.inline-block.align-middle
   if (!hasArabic && (hasMathSymbols || /[=]/.test(text) || hasLatinMath || /^[A-Za-z](_|\^)/.test(text))) {
-    const katexStr = "\\displaystyle " + textToKaTeX(text);
     return (
-      <div
-        dir="ltr"
-        className="my-2 text-center w-full overflow-x-auto"
-        style={{ whiteSpace: "nowrap" }}
-      >
-        <span className="inline-block align-middle">
-          <InlineMath math={katexStr} errorColor="#cc0000" />
+      <div dir="ltr" className="text-center my-2">
+        <span dir="ltr" className="inline-block align-middle text-base md:text-lg font-bold">
+          <InlineMath math={textToKaTeX(text)} errorColor="#cc0000" />
         </span>
       </div>
     );
   }
 
   // حالة 3: نص مختلط - فصل المعادلات في سطور منفصلة
-  // لكن فقط إذا كان هناك حروف لاتينية/يونانية (معادلة حقيقية)
   if (hasArabic && hasLatinOrGreek && (hasMathSymbols || /[=]/.test(text) || hasLatinMath)) {
     return <MixedText text={text} />;
   }
@@ -54,7 +48,7 @@ export function SmartMath({ text }: { text: string }) {
 
 /**
  * يقسم النص المختلط إلى أجزاء عربية ومعادلات
- * المعادلات تُعرض في سطور منفصلة بـ KaTeX (InlineMath مع displaystyle لمنع الكسر)
+ * المعادلات تُعرض بنفس نهج مكوّن Math (InlineMath داخل span.inline-block.align-middle)
  */
 function MixedText({ text }: { text: string }) {
   // نهج أبسط: قسّم عند ":" إذا وُجد
@@ -65,17 +59,15 @@ function MixedText({ text }: { text: string }) {
 
     // إذا ما بعد النقطتين يحتوي على معادلة
     if (/[A-Za-z\u00bd\u03bc\u03c1\u03bb\u03b8\u03c9\u03a3\u0394=\u00b7/\u00b7\u00d7\^\u00b2\u00b3]/.test(afterColon)) {
-      const katexStr = "\\displaystyle " + textToKaTeX(afterColon);
       return (
         <span dir="rtl" className="inline">
           <span>{beforeColon} </span>
           <span
             dir="ltr"
-            className="block my-1 px-3 py-1.5 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700 text-center overflow-x-auto"
-            style={{ whiteSpace: "nowrap" }}
+            className="block my-1 px-3 py-1.5 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700 text-center"
           >
-            <span className="inline-block align-middle">
-              <InlineMath math={katexStr} errorColor="#cc0000" />
+            <span dir="ltr" className="inline-block align-middle text-base md:text-lg font-bold">
+              <InlineMath math={textToKaTeX(afterColon)} errorColor="#cc0000" />
             </span>
           </span>
         </span>
@@ -91,17 +83,15 @@ function MixedText({ text }: { text: string }) {
     const formula = formulaMatch[0].trim();
     const after = text.slice(formulaMatch.index + formulaMatch[0].length).trim();
 
-    const katexStr = "\\displaystyle " + textToKaTeX(formula);
     return (
       <span dir="rtl" className="inline">
         {before && <span>{before} </span>}
         <span
           dir="ltr"
-          className="block my-1 px-3 py-1.5 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700 text-center overflow-x-auto"
-          style={{ whiteSpace: "nowrap" }}
+          className="block my-1 px-3 py-1.5 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700 text-center"
         >
-          <span className="inline-block align-middle">
-            <InlineMath math={katexStr} errorColor="#cc0000" />
+          <span dir="ltr" className="inline-block align-middle text-base md:text-lg font-bold">
+            <InlineMath math={textToKaTeX(formula)} errorColor="#cc0000" />
           </span>
         </span>
         {after && <span> {after}</span>}
