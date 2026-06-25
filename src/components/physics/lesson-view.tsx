@@ -319,7 +319,7 @@ export function LessonView({
                           المعطيات
                         </div>
                         <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
-                          {ex.given}
+                          <SmartMath text={ex.given} />
                         </p>
                       </div>
                       <div className="bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-900 rounded-lg p-3">
@@ -327,7 +327,7 @@ export function LessonView({
                           المطلوب
                         </div>
                         <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
-                          {ex.required}
+                          <SmartMath text={ex.required} />
                         </p>
                       </div>
                     </div>
@@ -734,7 +734,7 @@ function MisconceptionCard({
               خطأ شائع #{index + 1}
             </div>
             <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
-              {misconception.wrong}
+              <SmartMath text={misconception.wrong} />
             </p>
           </div>
         </div>
@@ -747,7 +747,7 @@ function MisconceptionCard({
               الصواب
             </div>
             <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
-              {misconception.correct}
+              <SmartMath text={misconception.correct} />
             </p>
           </div>
         </div>
@@ -760,7 +760,7 @@ function MisconceptionCard({
               لماذا؟
             </div>
             <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
-              {misconception.explanation}
+              <SmartMath text={misconception.explanation} />
             </p>
           </div>
         </div>
@@ -871,7 +871,7 @@ function QuizSection({
                 {idx + 1}
               </span>
               <p className="text-sm md:text-base text-slate-800 dark:text-slate-100 leading-relaxed flex-1">
-                {q.question}
+                <SmartMath text={q.question} />
               </p>
             </div>
 
@@ -1025,11 +1025,11 @@ function QuizSection({
                   <div className="text-xs font-bold text-violet-700 dark:text-violet-300 mb-1">
                     الإجابة النموذجية:{" "}
                     <span className="text-slate-900 dark:text-slate-100">
-                      {q.answer}
+                      <SmartMath text={q.answer} />
                     </span>
                   </div>
                   <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
-                    {q.workedSolution}
+                    <SmartMath text={q.workedSolution} />
                   </p>
                 </div>
               </motion.div>
