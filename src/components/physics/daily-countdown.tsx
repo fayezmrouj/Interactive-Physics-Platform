@@ -47,8 +47,8 @@ export function DailyChallengeCountdown({ completedToday, streak }: Props) {
       animate={{ opacity: 1, y: 0 }}
       className={`flex flex-col sm:flex-row items-center justify-center gap-3 px-4 py-3 rounded-xl border-2 ${
         completedToday
-          ? "bg-emerald-100 border-emerald-300"
-          : "bg-amber-100 border-amber-300"
+          ? "bg-emerald-100 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-700"
+          : "bg-amber-100 dark:bg-amber-950/40 border-amber-300 dark:border-amber-700"
       }`}
     >
       <div className="flex items-center gap-2">
@@ -62,14 +62,14 @@ export function DailyChallengeCountdown({ completedToday, streak }: Props) {
         <div className="text-right">
           <div
             className={`text-xs font-bold ${
-              completedToday ? "text-emerald-800" : "text-amber-800"
+              completedToday ? "text-emerald-800 dark:text-emerald-300" : "text-amber-800 dark:text-amber-300"
             }`}
           >
             {completedToday
               ? "✓ أكملت تحدي اليوم!"
               : "⚡ تحدّ يومي جديد ينتظرك"}
           </div>
-          <div className={`text-[10px] font-medium ${completedToday ? "text-emerald-700" : "text-amber-700"}`}>
+          <div className={`text-[10px] font-medium ${completedToday ? "text-emerald-700 dark:text-emerald-400" : "text-amber-700 dark:text-amber-400"}`}>
             🔥 السلسلة الحالية: {streak} يوم متتالي
           </div>
         </div>
@@ -83,7 +83,7 @@ export function DailyChallengeCountdown({ completedToday, streak }: Props) {
         <Clock
           className={`w-4 h-4 ${completedToday ? "text-emerald-600" : "text-amber-600 animate-pulse"}`}
         />
-        <div className={`text-xs font-medium ${completedToday ? "text-emerald-800" : "text-amber-800"}`}>
+        <div className={`text-xs font-medium ${completedToday ? "text-emerald-800 dark:text-emerald-300" : "text-amber-800 dark:text-amber-300"}`}>
           {completedToday ? "التحدّي القادم بعد" : "ينتهي التحدي الحالي بعد"}
         </div>
         <div className="flex items-center gap-1 font-mono font-bold text-sm tabular-nums">
@@ -104,7 +104,7 @@ function TimeBox({ value, unit, completedToday }: { value: string; unit: string;
       <span className={`px-1.5 py-0.5 rounded font-bold ${completedToday ? "bg-emerald-600 text-white" : "bg-amber-600 text-white"}`}>
         {value}
       </span>
-      <span className={`text-[9px] font-medium ${completedToday ? "text-emerald-700" : "text-amber-700"}`}>
+      <span className={`text-[9px] font-medium ${completedToday ? "text-emerald-700 dark:text-emerald-400" : "text-amber-700 dark:text-amber-400"}`}>
         {unit}
       </span>
     </div>

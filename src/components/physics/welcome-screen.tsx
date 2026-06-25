@@ -244,7 +244,7 @@ function GradeSelector({
 
   return (
     <div className="space-y-2">
-      <Label className="text-sm font-semibold text-slate-700">
+      <Label className="text-sm font-semibold text-slate-700 dark:text-slate-200">
         اختر صفك الدراسي
       </Label>
       <div className="grid grid-cols-3 gap-2">
@@ -256,7 +256,7 @@ function GradeSelector({
             className={`p-2.5 rounded-lg border-2 text-sm font-bold transition-all ${
               value === opt.id
                 ? "border-indigo-500 bg-indigo-600 text-white shadow-md"
-                : "border-slate-300 bg-slate-50 text-slate-700 hover:border-indigo-400 hover:bg-indigo-50"
+                : "border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-indigo-400 dark:hover:border-indigo-500 hover:bg-indigo-50 dark:hover:bg-slate-700"
             }`}
           >
             <div className="text-lg mb-0.5">{opt.emoji}</div>
@@ -401,7 +401,7 @@ export function WelcomeScreen({
           {/* اقتباس اليوم */}
           <DailyQuoteCard />
 
-          <Card className="bg-white/95 backdrop-blur-xl shadow-2xl border-white/40">
+          <Card className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl shadow-2xl border-white/40 dark:border-slate-700/40">
             <CardHeader className="text-center pb-2 pt-8 md:pt-10">
               <motion.div
                 initial={{ scale: 0, rotate: -180 }}
@@ -415,7 +415,7 @@ export function WelcomeScreen({
               <h1 className="text-3xl md:text-4xl font-extrabold bg-gradient-to-l from-indigo-700 via-blue-700 to-purple-700 bg-clip-text text-transparent mb-2">
                 منصة الفيزياء التفاعلية
               </h1>
-              <p className="text-slate-600 text-sm md:text-base max-w-md mx-auto leading-relaxed">
+              <p className="text-slate-600 dark:text-slate-300 text-sm md:text-base max-w-md mx-auto leading-relaxed">
                 رحلة تعليمية شاملة لفيزياء الصفين التاسع والعاشر، مبنية على الكتب المدرسية الرسمية.
                 ابدأ بالاستكشاف، طبّق القوانين، واختبر نفسك بالكويزات التفاعلية.
               </p>
@@ -482,7 +482,7 @@ export function WelcomeScreen({
                     <PlayCircle className="w-5 h-5 mr-2" />
                     <span>متابعة كـ {studentName}</span>
                   </Button>
-                  <div className="text-center text-xs text-slate-500">
+                  <div className="text-center text-xs text-slate-500 dark:text-slate-400">
                     أو سجّل اسمًا جديدًا بالأسفل
                   </div>
                 </div>
@@ -494,7 +494,7 @@ export function WelcomeScreen({
 
                 {/* إدخال الاسم */}
                 <div className="space-y-2">
-                  <Label htmlFor="student-name" className="text-base font-semibold text-slate-700">
+                  <Label htmlFor="student-name" className="text-base font-semibold text-slate-700 dark:text-slate-200">
                     ما اسمك أيها الفيزيائي؟
                   </Label>
                   <Input
@@ -504,7 +504,7 @@ export function WelcomeScreen({
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="اكتب اسمك هنا..."
-                    className="h-12 text-base bg-white border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all"
+                    className="h-12 text-base bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all"
                     autoFocus
                     maxLength={40}
                   />
@@ -546,7 +546,7 @@ export function WelcomeScreen({
                 </div>
               </form>
 
-              <p className="text-xs text-slate-500 text-center mt-4 leading-relaxed">
+              <p className="text-xs text-slate-500 dark:text-slate-400 text-center mt-4 leading-relaxed">
                 سيتم حفظ اسمك وتقدمك بشكل دائم على هذا المتصفح باستخدام LocalStorage.
                 يمكنك متابعة التعلم في أي وقت دون الحاجة لإعادة البدء.
               </p>
@@ -640,7 +640,7 @@ function StatCounter({
       <div className={`text-xl md:text-2xl font-extrabold ${color}`}>
         <AnimatedCounter value={value} suffix={suffix} />
       </div>
-      <div className="text-[10px] md:text-xs text-slate-500 font-medium mt-0.5">
+      <div className="text-[10px] md:text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
         {label}
       </div>
     </div>
