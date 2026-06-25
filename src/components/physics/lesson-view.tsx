@@ -147,7 +147,7 @@ export function LessonView({
         lessonTimeSpent={lessonTimeSpent}
       />
 
-      <main className="max-w-5xl mx-auto px-4 py-6 md:py-10 pb-16 space-y-6 md:space-y-8">
+      <main className="max-w-6xl mx-auto px-4 py-6 md:py-10 pb-16 space-y-6 md:space-y-8">
         {/* الفكرة الرئيسة */}
         <SectionCard
           icon={<Lightbulb className="w-5 h-5" />}
@@ -196,9 +196,9 @@ export function LessonView({
         >
           <div className="max-w-none space-y-4">
             {lesson.explanation.map((para, i) => (
-              <p key={i} className="text-slate-700 dark:text-slate-200 leading-loose text-base">
+              <div key={i} className="text-slate-700 dark:text-slate-200 leading-loose text-base">
                 <SmartMath text={para} />
-              </p>
+              </div>
             ))}
           </div>
         </SectionCard>

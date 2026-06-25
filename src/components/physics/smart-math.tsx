@@ -26,12 +26,14 @@ export function SmartMath({ text }: { text: string }) {
   }
 
   // حالة 2: معادلة خالصة بدون عربية
-  // نستخدم نفس نهج مكوّن Math بالضبط
+  // محاذاة للوسط مع إمكانية التمرير الأفقي وعدم الكسر
   if (!hasArabic && (hasMathSymbols || /[=]/.test(text) || hasLatinMath || /^[A-Za-z](_|\^)/.test(text))) {
     return (
-      <span dir="ltr" className="inline-block align-middle">
-        <InlineMath math={textToKaTeX(text)} errorColor="#cc0000" />
-      </span>
+      <div dir="ltr" className="w-full text-center my-2 overflow-x-auto" style={{ whiteSpace: "nowrap" }}>
+        <span className="inline-block align-middle">
+          <InlineMath math={textToKaTeX(text)} errorColor="#cc0000" />
+        </span>
+      </div>
     );
   }
 
