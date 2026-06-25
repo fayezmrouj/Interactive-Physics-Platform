@@ -322,7 +322,7 @@ export function LessonView({
                           المعطيات
                         </div>
                         <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
-                          <SmartMath text={ex.given} />
+                          {ex.given}
                         </p>
                       </div>
                       <div className="bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-900 rounded-lg p-3">
