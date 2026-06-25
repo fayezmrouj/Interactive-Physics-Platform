@@ -231,17 +231,3 @@
     margin: 0;
   }
 }
-
-/* منع كسر المعادلات الرياضية على سطرين */
-.katex-display {
-  display: inline-block !important;
-  width: max-content !important;
-  max-width: none !important;
-  white-space: nowrap !important;
-  margin: 0 !important;
-  text-align: center;
-}
-
-.katex-display > .katex {
-  white-space: nowrap !important;
-}
