@@ -170,6 +170,12 @@
   }
 }
 
+/* إخفاء زر الإغلاق الافتراضي في Dialog (استبدلناه بدائرة مخصصة) */
+[data-slot="dialog-content"] > button[class*="absolute"],
+[data-slot="dialog-close"] {
+  display: none !important;
+}
+
 /* زر الإغلاق الافتراضي في Sheet - دائرة حمراء بارزة على اليمين البصري */
 [data-slot="sheet-content"] > button[class*="absolute"] {
   background-color: #f43f5e !important;
