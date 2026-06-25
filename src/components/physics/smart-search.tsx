@@ -81,17 +81,17 @@ export function SmartSearch({ open, onOpenChange, onNavigateLesson }: Props) {
           <DialogTitle>البحث الذكي</DialogTitle>
         </DialogHeader>
 
-        {/* زر الإغلاق */}
+        {/* زر الإغلاق - يمين */}
         <button
           onClick={() => onOpenChange(false)}
-          className="absolute top-3 left-3 z-10 w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-rose-100 dark:hover:bg-rose-950/40 flex items-center justify-center text-slate-500 hover:text-rose-600 transition-colors"
+          className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-rose-100 dark:hover:bg-rose-950/40 flex items-center justify-center text-slate-500 hover:text-rose-600 transition-colors"
           aria-label="إغلاق"
           title="إغلاق"
         >
           <X className="w-4 h-4" />
         </button>
 
-        <div className="flex items-center gap-3 p-4 pr-12 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900">
+        <div className="flex items-center gap-3 p-4 pl-12 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900">
           <Search className="w-5 h-5 text-slate-500 shrink-0" />
           <Input
             ref={inputRef}
