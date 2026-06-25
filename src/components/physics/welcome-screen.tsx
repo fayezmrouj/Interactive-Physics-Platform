@@ -537,7 +537,7 @@ export function WelcomeScreen({
                     variant="outline"
                     size="lg"
                     onClick={() => setShowHowItWorks(true)}
-                    className="h-12 md:h-14 px-4 border-2 border-indigo-500 dark:border-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-200 font-bold hover:bg-indigo-100 dark:hover:bg-indigo-900/50 hover:border-indigo-600 dark:hover:border-indigo-300"
+                    className="h-12 md:h-14 px-4 border-2 border-indigo-500 dark:border-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-200 font-bold hover:bg-indigo-600 hover:text-white dark:hover:bg-indigo-500 dark:hover:text-white hover:border-indigo-700"
                     title="شرح طريقة استخدام المنصة"
                   >
                     <HelpCircle className="w-5 h-5" />
