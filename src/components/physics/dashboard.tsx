@@ -44,6 +44,7 @@ import {
 import type { UserProfile } from "@/lib/use-progress";
 import { formatTime } from "@/lib/use-progress";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { AppHeader } from "./app-header";
 import {
   computeAchievementPoints,
   ACHIEVEMENTS,
@@ -115,67 +116,16 @@ export function Dashboard({
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 transition-colors">
-      {/* الترويسة */}
-      <header className="sticky top-0 z-30 bg-white/85 dark:bg-slate-900/85 backdrop-blur-lg border-b border-slate-200 dark:border-slate-800 shadow-sm">
-        <div className="max-w-6xl mx-auto px-4 py-3 md:py-4 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gradient-to-tr from-indigo-600 via-blue-600 to-purple-600 flex items-center justify-center shadow-md shrink-0">
-              <GraduationCap className="w-6 h-6 md:w-7 md:h-7 text-white" />
-            </div>
-            <div className="min-w-0">
-              <h1 className="text-base md:text-xl font-bold text-slate-800 dark:text-slate-100 truncate">
-                منصة الفيزياء التفاعلية
-              </h1>
-              <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400 truncate">
-                أهلًا بك يا{" "}
-                <span className="font-semibold text-indigo-700 dark:text-indigo-400">
-                  {profile.name}
-                </span>
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <Button
-              size="sm"
-              onClick={onOpenFeatures}
-              className="bg-gradient-to-l from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-md"
-              title="كل الميزات الإضافية (حاسبة، محاكاة، تدريب، إنجازات...)"
-            >
-              <Menu className="w-4 h-4 ml-1" />
-              المزيد
-            </Button>
-            <ThemeToggle />
-            <Button
-              size="sm"
-              onClick={onShowCertificate}
-              className="hidden sm:inline-flex bg-gradient-to-l from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white"
-              disabled={!eligibleForCertificate}
-              title={!eligibleForCertificate ? "أكمل 70% من المنهج" : ""}
-            >
-              <Award className="w-4 h-4 ml-1" />
-              {certificateIssued ? "عرض شهادتك" : "احصل على شهادتك"}
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onReset}
-              className="text-slate-600 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 hidden sm:inline-flex"
-            >
-              <RotateCcw className="w-4 h-4 ml-1" />
-              تصفير
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onLogout}
-              className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
-            >
-              <LogOut className="w-4 h-4 ml-1" />
-              <span className="hidden sm:inline">خروج</span>
-            </Button>
-          </div>
-        </div>
-      </header>
+      {/* الترويسة الرئيسية */}
+      <AppHeader
+        studentName={profile.name}
+        eligibleForCertificate={eligibleForCertificate}
+        certificateIssued={certificateIssued}
+        onOpenFeatures={onOpenFeatures}
+        onShowCertificate={onShowCertificate}
+        onReset={onReset}
+        onLogout={onLogout}
+      />
 
       <main className="max-w-6xl mx-auto px-4 py-6 md:py-10 space-y-6 md:space-y-8">
         {/* بطاقة التقدم العام */}
