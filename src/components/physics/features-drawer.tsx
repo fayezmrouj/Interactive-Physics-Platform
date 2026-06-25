@@ -238,35 +238,42 @@ export function FeaturesDrawer({
           dir="rtl"
           style={{ paddingTop: "env(safe-area-inset-top)" }}
         >
-          {/* الرأس مع زر إغلاق واضح */}
-          <SheetHeader className="border-b border-slate-200 dark:border-slate-800 p-4 flex-row items-center justify-between space-y-0">
-            <SheetTitle className="text-right">
+          {/* الرأس: رجوع (يمين) + العنوان (وسط) + إغلاق (يسار) */}
+          <SheetHeader className="border-b border-slate-200 dark:border-slate-800 p-4 flex-row items-center justify-between space-y-0 gap-3">
+            {/* يمين: زر رجوع (يظهر فقط داخل ميزة محددة) */}
+            <div className="shrink-0">
               {activeFeatureData ? (
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => setActiveFeature(null)}
-                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-indigo-100 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-200 dark:hover:bg-indigo-950/60 text-sm font-medium transition-colors"
-                  >
-                    <ArrowRight className="w-4 h-4" />
-                    رجوع
-                  </button>
-                  <span>{activeFeatureData.label}</span>
-                </div>
+                <button
+                  onClick={() => setActiveFeature(null)}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-indigo-100 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-200 dark:hover:bg-indigo-950/60 text-sm font-medium transition-colors"
+                >
+                  <ArrowRight className="w-4 h-4" />
+                  رجوع
+                </button>
               ) : (
-                <span>كل الميزات الإضافية</span>
+                <div className="w-10" />
               )}
+            </div>
+
+            {/* وسط: العنوان */}
+            <SheetTitle className="text-center flex-1 min-w-0 truncate">
+              {activeFeatureData ? activeFeatureData.label : "كل الميزات الإضافية"}
             </SheetTitle>
-            <button
-              onClick={() => {
-                setOpen(false);
-                setActiveFeature(null);
-              }}
-              className="w-10 h-10 rounded-full bg-rose-500 hover:bg-rose-600 active:bg-rose-700 flex items-center justify-center text-white shadow-md transition-colors shrink-0"
-              aria-label="إغلاق"
-              title="إغلاق"
-            >
-              <X className="w-5 h-5" strokeWidth={3} />
-            </button>
+
+            {/* يسار: زر الإغلاق الأحمر */}
+            <div className="shrink-0">
+              <button
+                onClick={() => {
+                  setOpen(false);
+                  setActiveFeature(null);
+                }}
+                className="w-10 h-10 rounded-full bg-rose-500 hover:bg-rose-600 active:bg-rose-700 flex items-center justify-center text-white shadow-md transition-colors"
+                aria-label="إغلاق"
+                title="إغلاق"
+              >
+                <X className="w-5 h-5" strokeWidth={3} />
+              </button>
+            </div>
           </SheetHeader>
 
           {/* المحتوى قابل للتمرير العمودي */}

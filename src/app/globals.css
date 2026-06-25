@@ -171,8 +171,13 @@
 }
 
 /* إخفاء زر الإغلاق الافتراضي في Sheet (استبدلناه بزر أحمر مخصص) */
-[data-slot="sheet-close"] {
+[data-slot="sheet-close"],
+.SheetClose,
+button[data-slot="sheet-close"] {
   display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 
 /* تنسيق الطباعة للشهادة */
