@@ -465,7 +465,10 @@ function LessonHeader({
   const liveTime = lessonTimeSpent;
 
   return (
-    <header className={`sticky top-14 md:top-[68px] z-30 bg-gradient-to-l ${unit.color} text-white shadow-lg backdrop-blur-sm`}>
+    <header
+      className={`sticky z-30 bg-gradient-to-l ${unit.color} text-white shadow-lg backdrop-blur-sm`}
+      style={{ top: "calc(56px + env(safe-area-inset-top))" }}
+    >
       <div className="max-w-4xl mx-auto px-4 py-3 md:py-4">
         <div className="flex items-center justify-between gap-3">
           {/* يمين: زر العودة + معلومات الدرس */}

@@ -357,7 +357,10 @@ export function WelcomeScreen({
       </div>
 
       {/* ============ الترويسة العلوية (ثابتة) ============ */}
-      <header className="sticky top-0 z-40 px-4 md:px-8 py-4 md:py-5 flex items-center justify-between gap-3 backdrop-blur-sm bg-black/10">
+      <header
+        className="sticky top-0 z-40 px-4 md:px-8 py-4 md:py-5 flex items-center justify-between gap-3 backdrop-blur-sm bg-black/10"
+        style={{ paddingTop: "env(safe-area-inset-top)" }}
+      >
         {/* شعار المعلم + العبارة - يسار */}
         <motion.div
           initial={{ opacity: 0, x: -30 }}
