@@ -147,7 +147,7 @@ export function LessonView({
         lessonTimeSpent={lessonTimeSpent}
       />
 
-      <main className="max-w-4xl mx-auto px-4 py-6 md:py-10 pb-16 space-y-6 md:space-y-8">
+      <main className="max-w-5xl mx-auto px-4 py-6 md:py-10 pb-16 space-y-6 md:space-y-8">
         {/* الفكرة الرئيسة */}
         <SectionCard
           icon={<Lightbulb className="w-5 h-5" />}

@@ -31,10 +31,17 @@ export function SmartMath({ text }: { text: string }) {
     return (
       <div
         dir="ltr"
-        className="my-2 flex justify-center items-center overflow-x-auto"
-        style={{ whiteSpace: "nowrap" }}
+        className="my-2 w-full overflow-x-auto"
+        style={{
+          whiteSpace: "nowrap",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
       >
-        <BlockMath math={textToKaTeX(text)} errorColor="#cc0000" />
+        <div style={{ display: "inline-block", width: "max-content", maxWidth: "none" }}>
+          <BlockMath math={textToKaTeX(text)} errorColor="#cc0000" />
+        </div>
       </div>
     );
   }
@@ -73,10 +80,12 @@ function MixedText({ text }: { text: string }) {
           <span>{beforeColon} </span>
           <span
             dir="ltr"
-            className="block my-1 px-3 py-1.5 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700 flex justify-center items-center overflow-x-auto"
-            style={{ whiteSpace: "nowrap" }}
+            className="block my-1 px-3 py-1.5 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700 w-full overflow-x-auto"
+            style={{ whiteSpace: "nowrap", display: "flex", justifyContent: "center", alignItems: "center" }}
           >
-            <BlockMath math={textToKaTeX(afterColon)} errorColor="#cc0000" />
+            <div style={{ display: "inline-block", width: "max-content", maxWidth: "none" }}>
+              <BlockMath math={textToKaTeX(afterColon)} errorColor="#cc0000" />
+            </div>
           </span>
         </span>
       );
@@ -98,10 +107,12 @@ function MixedText({ text }: { text: string }) {
         {before && <span>{before} </span>}
         <span
           dir="ltr"
-          className="block my-1 px-3 py-1.5 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700 flex justify-center items-center overflow-x-auto"
-          style={{ whiteSpace: "nowrap" }}
+          className="block my-1 px-3 py-1.5 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700 w-full overflow-x-auto"
+          style={{ whiteSpace: "nowrap", display: "flex", justifyContent: "center", alignItems: "center" }}
         >
-          <BlockMath math={textToKaTeX(formula)} errorColor="#cc0000" />
+          <div style={{ display: "inline-block", width: "max-content", maxWidth: "none" }}>
+            <BlockMath math={textToKaTeX(formula)} errorColor="#cc0000" />
+          </div>
         </span>
         {after && <span> {after}</span>}
       </span>
