@@ -183,9 +183,9 @@
   opacity: 1 !important;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
   z-index: 50 !important;
-  /* في RTL، اليمين البصري = right في CSS */
-  right: 1rem !important;
-  left: auto !important;
+  /* زر الإغلاق على اليسار البصري */
+  left: 1rem !important;
+  right: auto !important;
   /* احترام safe area للـ Dynamic Island */
   top: calc(1rem + env(safe-area-inset-top)) !important;
 }
