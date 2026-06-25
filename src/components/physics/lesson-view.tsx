@@ -55,6 +55,7 @@ import { TimeTracker } from "./time-tracker";
 import { Math } from "./math";
 import { SmartMath } from "./smart-math";
 import { AppHeader } from "./app-header";
+import { AppFooter } from "./app-footer";
 import { formatTime } from "@/lib/use-progress";
 
 type Props = {
@@ -143,7 +144,7 @@ export function LessonView({
         lessonTimeSpent={lessonTimeSpent}
       />
 
-      <main className="max-w-4xl mx-auto px-4 py-6 md:py-10 space-y-6 md:space-y-8">
+      <main className="max-w-4xl mx-auto px-4 py-6 md:py-10 pb-16 space-y-6 md:space-y-8">
         {/* الفكرة الرئيسة */}
         <SectionCard
           icon={<Lightbulb className="w-5 h-5" />}
@@ -431,6 +432,9 @@ export function LessonView({
           lessonTimeSpent={lessonTimeSpent}
         />
       </main>
+
+      {/* التذييل المختصر الثابت */}
+      <AppFooter />
     </div>
   );
 }
