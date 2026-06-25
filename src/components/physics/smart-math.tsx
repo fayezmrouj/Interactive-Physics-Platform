@@ -7,7 +7,7 @@ import { textToKaTeX } from "@/lib/physics/formula-converter";
 /**
  * مكوّن ذكي لعرض النص الرياضي
  * 1. نص عربي خالص → نص عادي
- * 2. معادلة خالصة → InlineMath (نفس نهج مكوّن Math المستخدم في القوانين)
+ * 2. معادلة خالصة → InlineMath (نفس نهج مكوّن Math)
  * 3. نص مختلط → المعادلة في سطر منفصل تحت النص العربي
  */
 export function SmartMath({ text }: { text: string }) {
@@ -15,7 +15,6 @@ export function SmartMath({ text }: { text: string }) {
   const hasLatinOrGreek = /[A-Za-z\u00bd\u03bc\u03c1\u03bb\u03b8\u03c9\u03a3\u0394\u03b1\u03b2\u03b3\u03c0]/.test(text);
   const hasMathSymbols = /[+\-\u00b7/\u221a^\u00b2\u00b3\u2074\u2075\u207b\u00b9\u00b2\u00b3\u2074\u2075\u2076\u2077\u2078\u2079\u2080\u2081\u2082\u2083\u2084\u2085\u2086\u2087\u2088\u2089\u0394\u03bc\u03c1\u03bb\u03c9\u03b8\u03c0\u03a3\u221d\u2245\u2248\u2260\u2264\u2265\u00b1\u2192\u00d7]/.test(text);
   const hasLatinMath = /[A-Za-z].*[/_^\u00b2\u00b3]|\u221a|\u00b7|\u00d7/.test(text);
-  // `=` وحدها مع عربية = "يساوي" عربية، ليست معادلة
   const hasOnlyEqualsAndArabic = hasArabic && /[=]/.test(text) && !hasLatinOrGreek && !hasMathSymbols && !hasLatinMath;
 
   // حالة 1: نص عربي خالص (أو عربي مع = فقط = "يساوي")
@@ -27,14 +26,12 @@ export function SmartMath({ text }: { text: string }) {
   }
 
   // حالة 2: معادلة خالصة بدون عربية
-  // نستخدم نفس نهج مكوّن Math: InlineMath داخل span.inline-block.align-middle
+  // نستخدم نفس نهج مكوّن Math بالضبط
   if (!hasArabic && (hasMathSymbols || /[=]/.test(text) || hasLatinMath || /^[A-Za-z](_|\^)/.test(text))) {
     return (
-      <div dir="ltr" className="text-center my-2">
-        <span dir="ltr" className="inline-block align-middle text-base md:text-lg font-bold">
-          <InlineMath math={textToKaTeX(text)} errorColor="#cc0000" />
-        </span>
-      </div>
+      <span dir="ltr" className="inline-block align-middle">
+        <InlineMath math={textToKaTeX(text)} errorColor="#cc0000" />
+      </span>
     );
   }
 
@@ -48,7 +45,7 @@ export function SmartMath({ text }: { text: string }) {
 
 /**
  * يقسم النص المختلط إلى أجزاء عربية ومعادلات
- * المعادلات تُعرض بنفس نهج مكوّن Math (InlineMath داخل span.inline-block.align-middle)
+ * المعادلات تُعرض بنفس نهج مكوّن Math
  */
 function MixedText({ text }: { text: string }) {
   // نهج أبسط: قسّم عند ":" إذا وُجد
@@ -62,13 +59,8 @@ function MixedText({ text }: { text: string }) {
       return (
         <span dir="rtl" className="inline">
           <span>{beforeColon} </span>
-          <span
-            dir="ltr"
-            className="block my-1 px-3 py-1.5 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700 text-center"
-          >
-            <span dir="ltr" className="inline-block align-middle text-base md:text-lg font-bold">
-              <InlineMath math={textToKaTeX(afterColon)} errorColor="#cc0000" />
-            </span>
+          <span dir="ltr" className="inline-block align-middle">
+            <InlineMath math={textToKaTeX(afterColon)} errorColor="#cc0000" />
           </span>
         </span>
       );
@@ -86,13 +78,8 @@ function MixedText({ text }: { text: string }) {
     return (
       <span dir="rtl" className="inline">
         {before && <span>{before} </span>}
-        <span
-          dir="ltr"
-          className="block my-1 px-3 py-1.5 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700 text-center"
-        >
-          <span dir="ltr" className="inline-block align-middle text-base md:text-lg font-bold">
-            <InlineMath math={textToKaTeX(formula)} errorColor="#cc0000" />
-          </span>
+        <span dir="ltr" className="inline-block align-middle">
+          <InlineMath math={textToKaTeX(formula)} errorColor="#cc0000" />
         </span>
         {after && <span> {after}</span>}
       </span>

@@ -194,7 +194,7 @@ export function LessonView({
           title="شرح الدرس"
           subtitle="التفسير المفصّل للمفاهيم الفيزيائية"
         >
-          <div className="prose prose-slate dark:prose-invert max-w-none space-y-4">
+          <div className="max-w-none space-y-4">
             {lesson.explanation.map((para, i) => (
               <p key={i} className="text-slate-700 dark:text-slate-200 leading-loose text-base">
                 <SmartMath text={para} />
