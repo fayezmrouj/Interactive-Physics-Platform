@@ -231,3 +231,12 @@
     margin: 0;
   }
 }
+
+/* منع كسر المعادلات الرياضية على سطرين */
+.katex {
+  white-space: nowrap !important;
+}
+
+.katex .base {
+  white-space: nowrap !important;
+}
