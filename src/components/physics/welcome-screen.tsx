@@ -322,12 +322,12 @@ export function WelcomeScreen({
   }
 
   return (
-    <div className="min-h-screen w-full relative overflow-hidden flex flex-col">
+    <div className="min-h-screen w-full relative flex flex-col">
       {/* خلفية متدرجة علمية */}
-      <div className="absolute inset-0 bg-gradient-to-bl from-indigo-950 via-blue-900 to-purple-950" />
+      <div className="fixed inset-0 bg-gradient-to-bl from-indigo-950 via-blue-900 to-purple-950 -z-10" />
 
       {/* جسيمات متحركة + رموز فيزيائية عائمة */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
         {/* الجسيمات المتحركة */}
         <ParticlesBackground count={35} />
 
@@ -355,8 +355,8 @@ export function WelcomeScreen({
         ))}
       </div>
 
-      {/* ============ الترويسة العلوية ============ */}
-      <header className="relative z-20 px-4 md:px-8 py-4 md:py-5 flex items-center justify-between gap-3">
+      {/* ============ الترويسة العلوية (ثابتة) ============ */}
+      <header className="sticky top-0 z-40 px-4 md:px-8 py-4 md:py-5 flex items-center justify-between gap-3 backdrop-blur-sm bg-black/10">
         {/* شعار المعلم + العبارة - يسار */}
         <motion.div
           initial={{ opacity: 0, x: -30 }}
