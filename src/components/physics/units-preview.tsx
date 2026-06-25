@@ -82,10 +82,10 @@ export function UnitsPreview({ onSelectUnit, highlightGrade = "all" }: Props) {
     <TooltipProvider delayDuration={200}>
       <div className="w-full">
         <div className="text-center mb-3">
-          <h3 className="text-sm md:text-base font-bold text-slate-700 dark:text-slate-200">
+          <h3 className="text-sm md:text-base font-bold text-white">
             📚 استكشف الوحدات الـ10
           </h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+          <p className="text-xs text-white/70 mt-0.5">
             {highlightGrade === "9"
               ? "مبوّبة حسب الصف التاسع أولًا"
               : highlightGrade === "10"
@@ -210,8 +210,8 @@ export function UnitsPreview({ onSelectUnit, highlightGrade = "all" }: Props) {
                 key={`${group.grade}-${group.semester}`}
                 className={`text-xs px-3 py-1 rounded-full transition-colors ${
                   isHighlighted
-                    ? "bg-indigo-100 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300"
-                    : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
+                    ? "bg-white/20 text-white font-semibold"
+                    : "bg-white/5 text-white/50"
                 }`}
               >
                 {group.grade} • {group.semester} ({lessonsCount} دروس)
