@@ -29,7 +29,11 @@ export function SmartMath({ text }: { text: string }) {
   // حالة 2: معادلة خالصة بدون عربية - عرض display لسطر كامل
   if (!hasArabic && (hasMathSymbols || /[=]/.test(text) || hasLatinMath || /^[A-Za-z](_|\^)/.test(text))) {
     return (
-      <div dir="ltr" className="my-2 overflow-x-auto">
+      <div
+        dir="ltr"
+        className="my-2 flex justify-center items-center overflow-x-auto"
+        style={{ whiteSpace: "nowrap" }}
+      >
         <BlockMath math={textToKaTeX(text)} errorColor="#cc0000" />
       </div>
     );
@@ -67,7 +71,11 @@ function MixedText({ text }: { text: string }) {
       return (
         <span dir="rtl" className="inline">
           <span>{beforeColon} </span>
-          <span dir="ltr" className="block my-1 px-3 py-1.5 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700 text-center overflow-x-auto">
+          <span
+            dir="ltr"
+            className="block my-1 px-3 py-1.5 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700 flex justify-center items-center overflow-x-auto"
+            style={{ whiteSpace: "nowrap" }}
+          >
             <BlockMath math={textToKaTeX(afterColon)} errorColor="#cc0000" />
           </span>
         </span>
@@ -88,7 +96,11 @@ function MixedText({ text }: { text: string }) {
     return (
       <span dir="rtl" className="inline">
         {before && <span>{before} </span>}
-        <span dir="ltr" className="block my-1 px-3 py-1.5 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700 text-center overflow-x-auto">
+        <span
+          dir="ltr"
+          className="block my-1 px-3 py-1.5 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700 flex justify-center items-center overflow-x-auto"
+          style={{ whiteSpace: "nowrap" }}
+        >
           <BlockMath math={textToKaTeX(formula)} errorColor="#cc0000" />
         </span>
         {after && <span> {after}</span>}
