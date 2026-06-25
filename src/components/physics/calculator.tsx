@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Calculator, RotateCcw, Lightbulb } from "lucide-react";
+import { Math } from "./math";
 
 // تعريف القوانين القابلة للحساب
 type SolverField = {
@@ -485,8 +486,8 @@ export function PhysicsCalculator() {
           <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">
             القانون
           </div>
-          <div className="math-formula text-lg font-bold text-cyan-900 dark:text-cyan-200">
-            {solver.expression}
+          <div className="text-lg font-bold text-cyan-900 dark:text-cyan-200">
+            <Math math={solver.expression} />
           </div>
         </CardContent>
       </Card>
@@ -589,8 +590,8 @@ export function PhysicsCalculator() {
                 </div>
                 <ol className="space-y-1">
                   {steps.map((step, i) => (
-                    <li key={i} className="text-sm text-slate-700 dark:text-slate-200 math-formula">
-                      {step}
+                    <li key={i} className="text-sm text-slate-700 dark:text-slate-200">
+                      <Math math={step} />
                     </li>
                   ))}
                 </ol>

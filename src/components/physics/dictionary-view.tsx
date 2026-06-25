@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { BookA, Search, ArrowLeft } from "lucide-react";
 import { getDictionary, getFormulaBank } from "@/lib/physics/dictionary";
+import { Math } from "./math";
 
 type Props = {
   onNavigateLesson: (lessonId: string) => void;
@@ -132,12 +133,12 @@ function ConceptCard({
         <div className="flex items-center gap-1 flex-wrap">
           {entry.symbol && (
             <Badge className="bg-purple-600 text-white border-0">
-              <span className="math-formula">{entry.symbol}</span>
+              <Math math={entry.symbol} />
             </Badge>
           )}
           {entry.unit && (
             <Badge variant="outline" className="border-purple-300 dark:border-purple-800 text-purple-700 dark:text-purple-300">
-              <span className="math-formula">{entry.unit}</span>
+              <Math math={entry.unit} />
             </Badge>
           )}
         </div>
@@ -145,7 +146,7 @@ function ConceptCard({
       {entry.value && (
         <div className="mb-2 px-2 py-1 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded text-xs">
           <span className="font-semibold text-amber-800 dark:text-amber-300">القيمة: </span>
-          <span className="math-formula text-amber-900 dark:text-amber-200">{entry.value}</span>
+          <span className="text-amber-900 dark:text-amber-200"><Math math={entry.value} /></span>
         </div>
       )}
       <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed mb-2">
@@ -174,8 +175,8 @@ function FormulaCard({
       <div className="flex items-start justify-between gap-2 mb-2">
         <h4 className="font-bold text-cyan-900 dark:text-cyan-200">{entry.name}</h4>
         <div className="bg-white dark:bg-slate-800 rounded-lg px-3 py-1.5 border-2 border-cyan-300 dark:border-cyan-700 shrink-0">
-          <span className="math-formula text-cyan-900 dark:text-cyan-200 font-bold text-sm">
-            {entry.expression}
+          <span className="text-cyan-900 dark:text-cyan-200 font-bold text-sm">
+            <Math math={entry.expression} />
           </span>
         </div>
       </div>

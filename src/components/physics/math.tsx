@@ -2,31 +2,39 @@
 
 import { BlockMath, InlineMath } from "react-katex";
 import "katex/dist/katex.min.css";
+import { textToKaTeX } from "@/lib/physics/formula-converter";
 
 type Props = {
   math: string;
   block?: boolean;
 };
 
+/**
+ * مكوّن Math لعرض المعادلات الرياضية باستخدام KaTeX
+ * يقبل الصيغة النصية البسيطة ويحوّلها تلقائيًا
+ */
 export function Math({ math, block = false }: Props) {
-  // KaTeX يتطلب LTR للعرض الصحيح
+  // حوّل الصيغة النصية إلى KaTeX
+  const katexString = textToKaTeX(math);
+
   if (block) {
     return (
       <div dir="ltr" className="my-2 overflow-x-auto">
-        <BlockMath math={math} />
+        <BlockMath math={katexString} errorColor="#cc0000" />
       </div>
     );
   }
   return (
     <span dir="ltr" className="inline-block align-middle">
-      <InlineMath math={math} />
+      <InlineMath math={katexString} errorColor="#cc0000" />
     </span>
   );
 }
 
-// تحويل صيغة نصية بسيطة إلى KaTeX
-// مثال: "F = m \\cdot a" -> يعرض كمعادلة
-// مثال: "v = \\frac{\\Delta x}{\\Delta t}" -> يعرض ككسر
-export function MathText({ text }: { text: string }) {
-  return <Math math={text} />;
+/**
+ * يعرض معادلة كاملة بصيغة KaTeX (block)
+ * يستخدم في عرض القوانين والأمثلة
+ */
+export function FormulaDisplay({ formula }: { formula: string }) {
+  return <Math math={formula} block />;
 }

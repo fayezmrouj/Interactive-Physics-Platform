@@ -52,6 +52,7 @@ import {
 import type { Lesson, Unit } from "@/lib/physics";
 import { ALL_LESSON_IDS, findLesson } from "@/lib/physics";
 import { TimeTracker } from "./time-tracker";
+import { Math } from "./math";
 import { formatTime } from "@/lib/use-progress";
 
 type Props = {
@@ -189,7 +190,7 @@ export function LessonView({
                   <div className="flex items-center gap-1 flex-wrap">
                     {c.symbol && (
                       <Badge className="bg-purple-600 text-white border-0">
-                        <span className="math-formula">{c.symbol}</span>
+                        <Math math={c.symbol} />
                       </Badge>
                     )}
                     {c.unit && (
@@ -197,7 +198,7 @@ export function LessonView({
                         variant="outline"
                         className="border-purple-300 dark:border-purple-800 text-purple-700 dark:text-purple-300"
                       >
-                        <span className="math-formula">{c.unit}</span>
+                        <Math math={c.unit} />
                       </Badge>
                     )}
                   </div>
@@ -207,8 +208,8 @@ export function LessonView({
                     <span className="font-semibold text-amber-800 dark:text-amber-300">
                       القيمة:{" "}
                     </span>
-                    <span className="math-formula text-amber-900 dark:text-amber-200">
-                      {c.value}
+                    <span className="text-amber-900 dark:text-amber-200">
+                      <Math math={c.value} />
                     </span>
                   </div>
                 )}
@@ -242,9 +243,9 @@ export function LessonView({
                   </p>
                 </div>
                 <div className="bg-white dark:bg-slate-800 rounded-lg px-4 py-3 border-2 border-cyan-300 dark:border-cyan-700 shadow-sm shrink-0 self-start md:self-center">
-                  <span className="math-formula text-cyan-900 dark:text-cyan-200 text-base md:text-lg font-bold">
-                    {f.expression}
-                  </span>
+                  <div className="text-cyan-900 dark:text-cyan-200 text-base md:text-lg font-bold">
+                    <Math math={f.expression} />
+                  </div>
                 </div>
               </div>
             ))}
@@ -313,8 +314,8 @@ export function LessonView({
                             <span className="text-slate-400 dark:text-slate-500 mt-0.5 shrink-0">
                               {si + 1}.
                             </span>
-                            <span className={/math-formula/.test(step) ? "math-formula" : ""}>
-                              {step}
+                            <span className="flex-1 leading-relaxed">
+                              <MathText text={step} />
                             </span>
                           </li>
                         ))}
@@ -327,7 +328,7 @@ export function LessonView({
                           الإجابة النهائية
                         </div>
                         <p className="text-sm text-emerald-900 dark:text-emerald-200 font-medium leading-relaxed">
-                          {ex.answer}
+                          <MathText text={ex.answer} />
                         </p>
                       </div>
                     </div>
@@ -1054,6 +1055,31 @@ function LessonNotebook({
       </div>
     </div>
   );
+}
+
+// مكوّن لعرض نص مختلط (عربي + معادلات فيزيائية)
+// يكتشف المعادلات بعلامة = أو أرقام ورموز ويحولها إلى KaTeX
+function MathText({ text }: { text: string }) {
+  // إذا كان النص يحتوي على علامات معادلة، اعرضه كمعادلة
+  // علامات المعادلة: =, +, /, ·, ^, √, %, ², ³, إلخ
+  const isFormula = /[=+\-·/√^²³⁴⁵⁻¹²⁴ΔμρλωθπΣ]/.test(text) && /[a-zA-Z]/.test(text);
+
+  if (isFormula) {
+    // إذا كان النص كله معادلة، اعرضه باستخدام Math
+    // لكن إذا كان يحتوي على عربية، نعرضه كنص عادي (لأن KaTeX لا يدعم العربية)
+    const hasArabic = /[\u0600-\u06FF]/.test(text);
+    if (!hasArabic) {
+      return (
+        <span dir="ltr">
+          <Math math={text} />
+        </span>
+      );
+    }
+  }
+
+  // إذا كان النص مختلط (عربي + معادلة)، اعرضه كنص عادي
+  // لكن ضعه في span بـ dir="rtl" ليظهر بشكل صحيح
+  return <span>{text}</span>;
 }
 
 function CompletionCard({
