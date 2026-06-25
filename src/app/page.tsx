@@ -8,7 +8,7 @@ import { Certificate } from "@/components/physics/certificate";
 import { CertificateInstructions } from "@/components/physics/certificate-instructions";
 import { FeaturesDrawer } from "@/components/physics/features-drawer";
 import { useProgress, useIsMounted } from "@/lib/use-progress";
-import { CURRICULUM_STATS } from "@/lib/physics";
+import { CURRICULUM_STATS, GRADE9_LESSON_IDS, GRADE10_LESSON_IDS, GRADE9_LESSONS_COUNT, GRADE10_LESSONS_COUNT } from "@/lib/physics";
 import { ACHIEVEMENTS } from "@/lib/physics/achievements";
 import { toast } from "sonner";
 import { useTheme } from "next-themes";
@@ -29,6 +29,7 @@ export default function Home() {
     resetProgress,
     logout,
     issueCertificateIfEligible,
+    issueGradeCertificate,
     setNotebookEntry,
     completeDailyChallenge,
     recordPracticeAnswer,
@@ -48,6 +49,8 @@ export default function Home() {
   const [pendingUnitId, setPendingUnitId] = useState<string | null>(null);
   // تعليمات الشهادة
   const [showCertInstructions, setShowCertInstructions] = useState(false);
+  // الصف الذي ستعرض شهادته
+  const [certGrade, setCertGrade] = useState<9 | 10 | undefined>(undefined);
 
   // تتبع الوضع اللوني للإنجازات - تجنّب الحلقة اللانهائية بالتحقق من التغيير
   const lastThemeRef = useRef<string | null>(null);
@@ -181,10 +184,33 @@ export default function Home() {
   }
 
   function handleShowCertificate() {
-    if (activeProfile && activeProfile.completedLessons.length >= 7 && !activeProfile.certificateIssuedAt) {
-      issueCertificateIfEligible(CURRICULUM_STATS.totalLessons);
+    if (!activeProfile) return;
+    // احسب إكمال كل صف
+    const grade9Completed = GRADE9_LESSON_IDS.filter((id) =>
+      activeProfile.completedLessons.includes(id)
+    ).length;
+    const grade10Completed = GRADE10_LESSON_IDS.filter((id) =>
+      activeProfile.completedLessons.includes(id)
+    ).length;
+    const grade9Done = grade9Completed >= GRADE9_LESSONS_COUNT;
+    const grade10Done = grade10Completed >= GRADE10_LESSONS_COUNT;
+
+    if (grade9Done && grade10Done) {
+      // كلاهما مكتمل - اعرض شهادة الصف 9 افتراضيًا (المستخدم يمكنه التبديل)
+      setCertGrade(9);
+      setShowCertificate(true);
+    } else if (grade9Done) {
+      issueGradeCertificate(9, GRADE9_LESSON_IDS);
+      setCertGrade(9);
+      setShowCertificate(true);
+    } else if (grade10Done) {
+      issueGradeCertificate(10, GRADE10_LESSON_IDS);
+      setCertGrade(10);
+      setShowCertificate(true);
+    } else {
+      // لم يكمل أي صف - اعرض التعليمات
+      setShowCertInstructions(true);
     }
-    setShowCertificate(true);
   }
 
   function handleShowCertInstructions() {
@@ -258,7 +284,7 @@ export default function Home() {
         startedAt: activeProfile.startedAt,
         lessonTimeSeconds: activeProfile.lessonTimeSeconds,
         totalTimeSeconds: activeProfile.totalTimeSeconds,
-        certificateIssuedAt: activeProfile.certificateIssuedAt,
+        certificateIssuedAt: certGrade === 9 ? activeProfile.certificateIssuedAt9 : certGrade === 10 ? activeProfile.certificateIssuedAt10 : activeProfile.certificateIssuedAt,
         notebook: activeProfile.notebook,
         spacedRepetition: activeProfile.spacedRepetition,
         dailyChallengeCompletedDates: activeProfile.dailyChallengeCompletedDates,
@@ -273,19 +299,30 @@ export default function Home() {
         createdAt: activeProfile.createdAt,
       }}
       onClose={() => setShowCertificate(false)}
+      grade={certGrade}
     />
   ) : null;
 
   // overlay تعليمات الشهادة
+  const grade9CompletedCount = activeProfile
+    ? GRADE9_LESSON_IDS.filter((id) => activeProfile.completedLessons.includes(id)).length
+    : 0;
+  const grade10CompletedCount = activeProfile
+    ? GRADE10_LESSON_IDS.filter((id) => activeProfile.completedLessons.includes(id)).length
+    : 0;
+  const grade9Pct = Math.round((grade9CompletedCount / GRADE9_LESSONS_COUNT) * 100);
+  const grade10Pct = Math.round((grade10CompletedCount / GRADE10_LESSONS_COUNT) * 100);
+
   const certInstructionsOverlay = (
     <CertificateInstructions
       open={showCertInstructions}
       onOpenChange={setShowCertInstructions}
-      completionPct={Math.round(
-        (activeProfile.completedLessons.length / CURRICULUM_STATS.totalLessons) * 100
-      )}
-      completedLessons={activeProfile.completedLessons.length}
-      totalLessons={CURRICULUM_STATS.totalLessons}
+      grade9Pct={grade9Pct}
+      grade10Pct={grade10Pct}
+      grade9Completed={grade9CompletedCount}
+      grade10Completed={grade10CompletedCount}
+      grade9Total={GRADE9_LESSONS_COUNT}
+      grade10Total={GRADE10_LESSONS_COUNT}
     />
   );
 
@@ -299,6 +336,7 @@ export default function Home() {
           onReset={handleReset}
           onLogout={handleLogout}
           onShowCertificate={handleShowCertificate}
+          onShowCertInstructions={handleShowCertInstructions}
           onOpenFeatures={() => setFeaturesOpen(true)}
           pendingUnitId={pendingUnitId}
           onConsumedPendingUnit={() => setPendingUnitId(null)}

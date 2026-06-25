@@ -73,3 +73,17 @@ export function findLesson(lessonId: string): { lesson: Unit["lessons"][0]; unit
 
 // قائمة معرّفات الدروس للترتيب
 export const ALL_LESSON_IDS: string[] = ALL_UNITS.flatMap((u) => u.lessons.map((l) => l.id));
+
+// دروس الصف التاسع فقط
+export const GRADE9_LESSON_IDS: string[] = ALL_UNITS
+  .filter((u) => u.grade.includes("التاسع"))
+  .flatMap((u) => u.lessons.map((l) => l.id));
+
+// دروس الصف العاشر فقط
+export const GRADE10_LESSON_IDS: string[] = ALL_UNITS
+  .filter((u) => u.grade.includes("العاشر"))
+  .flatMap((u) => u.lessons.map((l) => l.id));
+
+// إحصائيات كل صف
+export const GRADE9_LESSONS_COUNT = GRADE9_LESSON_IDS.length;
+export const GRADE10_LESSONS_COUNT = GRADE10_LESSON_IDS.length;

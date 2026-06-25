@@ -38,6 +38,10 @@ import {
   ALL_UNITS,
   CURRICULUM,
   CURRICULUM_STATS,
+  GRADE9_LESSON_IDS,
+  GRADE10_LESSON_IDS,
+  GRADE9_LESSONS_COUNT,
+  GRADE10_LESSONS_COUNT,
   type Lesson,
   type Unit,
 } from "@/lib/physics";
@@ -58,6 +62,7 @@ type Props = {
   onReset: () => void;
   onLogout: () => void;
   onShowCertificate: () => void;
+  onShowCertInstructions?: () => void;
   onOpenFeatures: () => void;
   pendingUnitId?: string | null;
   onConsumedPendingUnit?: () => void;
@@ -69,11 +74,11 @@ export function Dashboard({
   onReset,
   onLogout,
   onShowCertificate,
+  onShowCertInstructions,
   onOpenFeatures,
   pendingUnitId,
   onConsumedPendingUnit,
 }: Props) {
-  const [showCertInstructions, setShowCertInstructions] = useState(false);
   const totalLessons = CURRICULUM_STATS.totalLessons;
   const completedCount = profile.completedLessons.length;
   const completionPct =
@@ -103,8 +108,17 @@ export function Dashboard({
   );
 
   // إمكانية الحصول على شهادة (>= 70% إكمال)
-  const eligibleForCertificate = completionPct >= 70;
-  const certificateIssued = !!profile.certificateIssuedAt;
+  // إمكانية الحصول على شهادة (100% من أي صف)
+  const grade9Completed = profile.completedLessons.filter((id) =>
+    GRADE9_LESSON_IDS.includes(id)
+  ).length;
+  const grade10Completed = profile.completedLessons.filter((id) =>
+    GRADE10_LESSON_IDS.includes(id)
+  ).length;
+  const grade9Done = grade9Completed >= GRADE9_LESSONS_COUNT;
+  const grade10Done = grade10Completed >= GRADE10_LESSONS_COUNT;
+  const eligibleForCertificate = grade9Done || grade10Done;
+  const certificateIssued = !!(profile.certificateIssuedAt9 || profile.certificateIssuedAt10);
 
   // إنجازات
   const unlockedAch = profile.unlockedAchievements.length;
@@ -128,7 +142,7 @@ export function Dashboard({
         onShowCertificate={onShowCertificate}
         onReset={onReset}
         onLogout={onLogout}
-        onShowCertInstructions={() => setShowCertInstructions(true)}
+        onShowCertInstructions={onShowCertInstructions}
       />
 
       <main className="max-w-6xl mx-auto px-4 py-6 md:py-10 pb-16 space-y-6 md:space-y-8">
@@ -273,11 +287,11 @@ export function Dashboard({
                         ? "شهادتك جاهزة!"
                         : eligibleForCertificate
                         ? "مؤهّل للشهادة!"
-                        : "شهادة الإتمام"}
+                        : "شهادات الصفوف"}
                     </h3>
                   </div>
                 </div>
-                <div className="flex-1 flex items-center justify-center">
+                <div className="flex-1 flex flex-col items-center justify-center gap-2">
                   {eligibleForCertificate ? (
                     <Button
                       onClick={onShowCertificate}
@@ -285,17 +299,32 @@ export function Dashboard({
                       className="w-full bg-gradient-to-l from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white shadow-md"
                     >
                       <Award className="w-4 h-4 ml-1" />
-                      {certificateIssued ? "عرض" : "إصدار"}
+                      {certificateIssued ? "عرض الشهادة" : "إصدار الشهادة"}
                     </Button>
                   ) : (
                     <button
-                      onClick={() => setShowCertInstructions(true)}
-                      className="w-full"
+                      onClick={() => onShowCertInstructions?.()}
+                      className="w-full space-y-1.5"
                     >
-                      <div className="text-xs text-slate-500 mb-1 text-center hover:text-amber-600 transition-colors">
-                        أكمل {Math.max(0, 70 - completionPct)}% إضافي — اضغط للتعليمات
+                      {/* تقدم الصف التاسع */}
+                      <div>
+                        <div className="flex justify-between text-[10px] text-slate-500 mb-0.5">
+                          <span>صف 9</span>
+                          <span>{grade9Completed}/{GRADE9_LESSONS_COUNT}</span>
+                        </div>
+                        <Progress value={(grade9Completed / GRADE9_LESSONS_COUNT) * 100} className="h-1.5" />
                       </div>
-                      <Progress value={Math.min(completionPct, 70)} className="h-2" />
+                      {/* تقدم الصف العاشر */}
+                      <div>
+                        <div className="flex justify-between text-[10px] text-slate-500 mb-0.5">
+                          <span>صف 10</span>
+                          <span>{grade10Completed}/{GRADE10_LESSONS_COUNT}</span>
+                        </div>
+                        <Progress value={(grade10Completed / GRADE10_LESSONS_COUNT) * 100} className="h-1.5" />
+                      </div>
+                      <div className="text-[10px] text-amber-600 dark:text-amber-400 text-center mt-1">
+                        أكمل جميع دروس صف للحصول على شهادته — اضغط للتعليمات
+                      </div>
                     </button>
                   )}
                 </div>
@@ -421,15 +450,6 @@ export function Dashboard({
         </div>
 
       </main>
-
-      {/* تعليمات الشهادة */}
-      <CertificateInstructions
-        open={showCertInstructions}
-        onOpenChange={setShowCertInstructions}
-        completionPct={completionPct}
-        completedLessons={completedCount}
-        totalLessons={totalLessons}
-      />
 
       {/* التذييل المختصر الثابت */}
       <AppFooter variant="full" />

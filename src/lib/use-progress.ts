@@ -36,6 +36,8 @@ export type UserProfile = {
   lessonTimeSeconds: Record<string, number>;
   totalTimeSeconds: number;
   certificateIssuedAt: number | null;
+  certificateIssuedAt9: number | null;
+  certificateIssuedAt10: number | null;
   // مفكرة الطالب: lessonId -> نص
   notebook: Record<string, string>;
   // مراجعة ذكية
@@ -76,6 +78,8 @@ const createDefaultProfile = (id: string, name: string, grade: "9" | "10" | "all
   lessonTimeSeconds: {},
   totalTimeSeconds: 0,
   certificateIssuedAt: null,
+  certificateIssuedAt9: null,
+  certificateIssuedAt10: null,
   notebook: {},
   spacedRepetition: {},
   dailyChallengeCompletedDates: [],
@@ -512,6 +516,28 @@ export function useProgress() {
     []
   );
 
+  // إصدار شهادة لصف محدد (9 أو 10) عند إكمال 100% من دروسه
+  const issueGradeCertificate = useCallback(
+    (grade: 9 | 10, gradeLessonIds: string[]): { eligible: boolean; issued: boolean } => {
+      const cur = readFromStorage();
+      if (!cur.activeProfileId) return { eligible: false, issued: false };
+      const p = cur.profiles[cur.activeProfileId];
+      // تحقق أن جميع دروس الصف مكتملة
+      const allCompleted = gradeLessonIds.every((id) => p.completedLessons.includes(id));
+      const field = grade === 9 ? "certificateIssuedAt9" : "certificateIssuedAt10";
+      if (allCompleted && !p[field]) {
+        const next = updateActiveProfile(cur, (pp) => ({
+          ...pp,
+          [field]: Date.now(),
+        }));
+        writeToStorage(next);
+        return { eligible: true, issued: true };
+      }
+      return { eligible: allCompleted, issued: false };
+    },
+    []
+  );
+
   // === تصدير/استيراد ===
   const exportState = useCallback((): string => {
     return JSON.stringify(readFromStorage(), null, 2);
@@ -556,6 +582,7 @@ export function useProgress() {
     resetProgress,
     logout,
     issueCertificateIfEligible,
+    issueGradeCertificate,
     // تصدير/استيراد
     exportState,
     importState,

@@ -12,16 +12,23 @@ import {
 } from "lucide-react";
 import type { ProgressState } from "@/lib/use-progress";
 import { formatTime } from "@/lib/use-progress";
-import { CURRICULUM_STATS } from "@/lib/physics";
+import { CURRICULUM_STATS, GRADE9_LESSON_IDS, GRADE10_LESSON_IDS, GRADE9_LESSONS_COUNT, GRADE10_LESSONS_COUNT } from "@/lib/physics";
 
 type Props = {
   progress: ProgressState;
   onClose: () => void;
+  grade?: 9 | 10; // الصف الذي صدرت له الشهادة
 };
 
-export function Certificate({ progress, onClose }: Props) {
-  const completedCount = progress.completedLessons.length;
-  const totalLessons = CURRICULUM_STATS.totalLessons;
+export function Certificate({ progress, onClose, grade }: Props) {
+  // إذا حددنا صفًا، احسب الإحصائيات لذلك الصف فقط
+  const gradeLessonIds = grade === 9 ? GRADE9_LESSON_IDS : grade === 10 ? GRADE10_LESSON_IDS : null;
+  const gradeLessonsCount = grade === 9 ? GRADE9_LESSONS_COUNT : grade === 10 ? GRADE10_LESSONS_COUNT : CURRICULUM_STATS.totalLessons;
+
+  const completedCount = gradeLessonIds
+    ? gradeLessonIds.filter((id) => progress.completedLessons.includes(id)).length
+    : progress.completedLessons.length;
+  const totalLessons = gradeLessonsCount;
   const completionPct = Math.round((completedCount / totalLessons) * 100);
   const issuedAt = progress.certificateIssuedAt
     ? new Date(progress.certificateIssuedAt)
@@ -60,19 +67,19 @@ export function Certificate({ progress, onClose }: Props) {
   }
 
   // التقييم النصي حسب نسبة الإنجاز
-  let grade = "ممتاز";
+  let gradeText = "ممتاز";
   let gradeColor = "text-amber-600";
   if (completionPct < 70) {
-    grade = "مؤهل";
+    gradeText = "مؤهل";
     gradeColor = "text-indigo-600";
   } else if (completionPct < 90) {
-    grade = "جيد جدًا";
+    gradeText = "جيد جدًا";
     gradeColor = "text-emerald-600";
   } else if (completionPct < 100) {
-    grade = "ممتاز";
+    gradeText = "ممتاز";
     gradeColor = "text-amber-600";
   } else {
-    grade = "ممتاز بمرتبة الشرف";
+    gradeText = "ممتاز بمرتبة الشرف";
     gradeColor = "text-amber-600";
   }
 
@@ -162,7 +169,7 @@ export function Certificate({ progress, onClose }: Props) {
                       {studentName}
                     </h2>
                     <p className="text-slate-700 text-sm md:text-base leading-relaxed max-w-2xl mx-auto mb-5">
-                      قد أتمّ بنجاح دراسة منهج الفيزياء للصفين التاسع والعاشر،
+                      قد أتمّ بنجاح دراسة منهج الفيزياء {grade === 9 ? "للصف التاسع" : grade === 10 ? "للصف العاشر" : "للصفين التاسع والعاشر"}،
                       مشتملاً على{" "}
                       <span className="font-bold text-indigo-700">
                         {CURRICULUM_STATS.totalUnits} وحدات دراسية
@@ -208,7 +215,7 @@ export function Certificate({ progress, onClose }: Props) {
                         التقدير النهائي
                       </div>
                       <div className={`text-2xl font-extrabold ${gradeColor}`}>
-                        {grade}
+                        {gradeText}
                       </div>
                     </div>
 
