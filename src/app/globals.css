@@ -170,6 +170,11 @@
   }
 }
 
+/* إخفاء زر الإغلاق الافتراضي في Sheet (استبدلناه بزر أحمر مخصص) */
+[data-slot="sheet-close"] {
+  display: none !important;
+}
+
 /* تنسيق الطباعة للشهادة */
 @media print {
   body * {

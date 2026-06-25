@@ -23,6 +23,7 @@ import {
   Database,
   Users,
   X,
+  ArrowRight,
 } from "lucide-react";
 import { SmartSearch } from "./smart-search";
 import { Dictionary } from "./dictionary-view";
@@ -241,12 +242,13 @@ export function FeaturesDrawer({
           <SheetHeader className="border-b border-slate-200 dark:border-slate-800 p-4 flex-row items-center justify-between space-y-0">
             <SheetTitle className="text-right">
               {activeFeatureData ? (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                   <button
                     onClick={() => setActiveFeature(null)}
-                    className="text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 px-2 py-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-indigo-100 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-200 dark:hover:bg-indigo-950/60 text-sm font-medium transition-colors"
                   >
-                    ← رجوع
+                    <ArrowRight className="w-4 h-4" />
+                    رجوع
                   </button>
                   <span>{activeFeatureData.label}</span>
                 </div>
