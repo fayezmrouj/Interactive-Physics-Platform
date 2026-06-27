@@ -1,14 +1,11 @@
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: Twitterbot
-Allow: /
-
-User-agent: facebookexternalhit
-Allow: /
+# robots.txt - منصة الفيزياء التفاعلية
+# السماح لجميع محركات البحث بفهرسة الموقع
 
 User-agent: *
 Allow: /
+
+# منع فهرسة صفحات API فقط (إن وُجدت)
+Disallow: /api/
+
+# موقع ملف Sitemap
+Sitemap: https://interactive-physics-platform.vercel.app/sitemap.xml
