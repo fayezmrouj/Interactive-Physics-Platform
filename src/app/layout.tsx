@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
 import { InstallPrompt } from "@/components/physics/install-prompt";
+import { Analytics } from "@vercel/analytics/next";
 
 const cairo = Cairo({
   variable: "--font-cairo",
@@ -154,6 +155,7 @@ export default function RootLayout({
           <Toaster />
           <Sonner position="top-center" richColors closeButton />
           <InstallPrompt />
+          <Analytics />
         </ThemeProvider>
       </body>
     </html>
